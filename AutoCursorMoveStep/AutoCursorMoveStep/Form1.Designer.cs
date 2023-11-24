@@ -59,6 +59,7 @@
             // 
             // gvAutoList
             // 
+            gvAutoList.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
             gvAutoList.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             gvAutoList.Columns.AddRange(new DataGridViewColumn[] { imgPosition, txtTopLeftX, txtTopLeftY, txtBotRightX, txtBotRightY, txtInterval, chkActive, imgRecheck, btnFetchImageCheck, IsEqualFetch, btnCheckEqual });
             gvAutoList.Location = new Point(20, 10);
@@ -66,7 +67,7 @@
             gvAutoList.Name = "gvAutoList";
             gvAutoList.RowHeadersWidth = 62;
             gvAutoList.RowTemplate.Height = 100;
-            gvAutoList.Size = new Size(1157, 441);
+            gvAutoList.Size = new Size(1157, 587);
             gvAutoList.TabIndex = 0;
             // 
             // imgPosition
@@ -138,7 +139,8 @@
             // 
             // btnAddRow
             // 
-            btnAddRow.Location = new Point(20, 474);
+            btnAddRow.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            btnAddRow.Location = new Point(11, 620);
             btnAddRow.Margin = new Padding(2);
             btnAddRow.Name = "btnAddRow";
             btnAddRow.Size = new Size(78, 20);
@@ -149,10 +151,11 @@
             // 
             // btnStart
             // 
-            btnStart.Location = new Point(436, 474);
+            btnStart.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            btnStart.Location = new Point(322, 618);
             btnStart.Margin = new Padding(2);
             btnStart.Name = "btnStart";
-            btnStart.Size = new Size(78, 20);
+            btnStart.Size = new Size(78, 24);
             btnStart.TabIndex = 2;
             btnStart.Text = "Start";
             btnStart.UseVisualStyleBackColor = true;
@@ -160,10 +163,11 @@
             // 
             // btnStop
             // 
-            btnStop.Location = new Point(538, 474);
+            btnStop.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            btnStop.Location = new Point(424, 618);
             btnStop.Margin = new Padding(2);
             btnStop.Name = "btnStop";
-            btnStop.Size = new Size(78, 20);
+            btnStop.Size = new Size(78, 24);
             btnStop.TabIndex = 3;
             btnStop.Text = "Stop (s)";
             btnStop.UseVisualStyleBackColor = true;
@@ -171,10 +175,11 @@
             // 
             // btnFetchImageManual
             // 
-            btnFetchImageManual.Location = new Point(641, 473);
+            btnFetchImageManual.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            btnFetchImageManual.Location = new Point(523, 616);
             btnFetchImageManual.Margin = new Padding(2);
             btnFetchImageManual.Name = "btnFetchImageManual";
-            btnFetchImageManual.Size = new Size(138, 20);
+            btnFetchImageManual.Size = new Size(138, 24);
             btnFetchImageManual.TabIndex = 4;
             btnFetchImageManual.Text = "Fetch Image Manual";
             btnFetchImageManual.UseVisualStyleBackColor = true;
@@ -182,8 +187,9 @@
             // 
             // label1
             // 
+            label1.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             label1.AutoSize = true;
-            label1.Location = new Point(26, 509);
+            label1.Location = new Point(683, 627);
             label1.Name = "label1";
             label1.Size = new Size(39, 15);
             label1.TabIndex = 5;
@@ -191,8 +197,9 @@
             // 
             // lbStatusValue
             // 
+            lbStatusValue.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             lbStatusValue.AutoSize = true;
-            lbStatusValue.Location = new Point(83, 509);
+            lbStatusValue.Location = new Point(740, 627);
             lbStatusValue.Name = "lbStatusValue";
             lbStatusValue.Size = new Size(39, 15);
             lbStatusValue.TabIndex = 6;
@@ -200,8 +207,9 @@
             // 
             // lbStepValue
             // 
+            lbStepValue.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             lbStepValue.AutoSize = true;
-            lbStepValue.Location = new Point(219, 509);
+            lbStepValue.Location = new Point(876, 627);
             lbStepValue.Name = "lbStepValue";
             lbStepValue.Size = new Size(58, 15);
             lbStepValue.TabIndex = 8;
@@ -209,8 +217,9 @@
             // 
             // label3
             // 
+            label3.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             label3.AutoSize = true;
-            label3.Location = new Point(162, 509);
+            label3.Location = new Point(819, 627);
             label3.Name = "label3";
             label3.Size = new Size(30, 15);
             label3.TabIndex = 7;
@@ -218,9 +227,10 @@
             // 
             // btnSave
             // 
-            btnSave.Location = new Point(1121, 470);
+            btnSave.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            btnSave.Location = new Point(955, 616);
             btnSave.Name = "btnSave";
-            btnSave.Size = new Size(75, 23);
+            btnSave.Size = new Size(75, 24);
             btnSave.TabIndex = 9;
             btnSave.Text = "Save";
             btnSave.UseVisualStyleBackColor = true;
@@ -228,9 +238,10 @@
             // 
             // btnLoad
             // 
-            btnLoad.Location = new Point(1202, 470);
+            btnLoad.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            btnLoad.Location = new Point(1036, 616);
             btnLoad.Name = "btnLoad";
-            btnLoad.Size = new Size(75, 23);
+            btnLoad.Size = new Size(75, 24);
             btnLoad.TabIndex = 10;
             btnLoad.Text = "Load";
             btnLoad.UseVisualStyleBackColor = true;
@@ -238,9 +249,10 @@
             // 
             // btnTruncate
             // 
-            btnTruncate.Location = new Point(1283, 470);
+            btnTruncate.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            btnTruncate.Location = new Point(1117, 616);
             btnTruncate.Name = "btnTruncate";
-            btnTruncate.Size = new Size(75, 23);
+            btnTruncate.Size = new Size(75, 24);
             btnTruncate.TabIndex = 11;
             btnTruncate.Text = "Clear";
             btnTruncate.UseVisualStyleBackColor = true;
@@ -248,24 +260,28 @@
             // 
             // lbLog
             // 
+            lbLog.Dock = DockStyle.Right;
             lbLog.FormattingEnabled = true;
             lbLog.ItemHeight = 15;
-            lbLog.Location = new Point(1194, 11);
+            lbLog.Location = new Point(1198, 0);
             lbLog.Name = "lbLog";
-            lbLog.Size = new Size(234, 439);
+            lbLog.Size = new Size(347, 651);
             lbLog.TabIndex = 12;
             // 
             // txtRoundNumber
             // 
-            txtRoundNumber.Location = new Point(329, 473);
+            txtRoundNumber.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            txtRoundNumber.Location = new Point(197, 616);
             txtRoundNumber.Name = "txtRoundNumber";
             txtRoundNumber.Size = new Size(100, 23);
             txtRoundNumber.TabIndex = 13;
+            txtRoundNumber.Text = "3";
             // 
             // label2
             // 
+            label2.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             label2.AutoSize = true;
-            label2.Location = new Point(251, 475);
+            label2.Location = new Point(110, 627);
             label2.Name = "label2";
             label2.Size = new Size(72, 15);
             label2.TabIndex = 14;
@@ -275,7 +291,7 @@
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1440, 548);
+            ClientSize = new Size(1545, 651);
             Controls.Add(label2);
             Controls.Add(txtRoundNumber);
             Controls.Add(lbLog);
@@ -327,8 +343,8 @@
         private DataGridViewButtonColumn btnFetchImageCheck;
         private DataGridViewTextBoxColumn IsEqualFetch;
         private DataGridViewButtonColumn btnCheckEqual;
-        private ListBox lbLog;
         private TextBox txtRoundNumber;
         private Label label2;
+        public ListBox lbLog;
     }
 }

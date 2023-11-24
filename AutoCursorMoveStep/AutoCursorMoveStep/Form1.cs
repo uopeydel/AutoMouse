@@ -6,6 +6,7 @@ using System.Windows.Forms;
 using System.Data.SQLite;
 using System.Data;
 using static AutoCursorMoveStep.Service.MouseOperationsService;
+using System.Text;
 
 namespace AutoCursorMoveStep
 {
@@ -51,26 +52,7 @@ namespace AutoCursorMoveStep
             }
         }
 
-        public static int GenerateRandomMillisecond(int start, int end)
-        {
-            if (start > end)
-            {
-                throw new ArgumentException("Start value must be less than or equal to end value.");
-            }
 
-            Random random = new Random();
-            double randomRange = (double)(end - start);
-            double randomSecond = 0.0;
-
-            while (randomSecond % 0.3 != 0)
-            {
-                randomSecond = random.NextDouble() * randomRange;
-                randomSecond += start;
-            }
-
-            int randomMillisecond = (int)randomSecond * 1000;
-            return randomMillisecond;
-        }
 
         private IntPtr HookCallback(int nCode, IntPtr wParam, IntPtr lParam)
         {
@@ -97,19 +79,12 @@ namespace AutoCursorMoveStep
         }
         #endregion
 
-        private static void LeftMouseClick()
-        {
-            MouseOperationsService.MouseEvent(MouseOperationsService.MouseEventFlags.LeftDown);
-            System.Threading.Thread.Sleep(GenerateRandomMillisecond(1, 4));
-            MouseOperationsService.MouseEvent(MouseOperationsService.MouseEventFlags.LeftUp);
-        }
+
 
         public Form1()
         {
             InitializeComponent();
             AppendLogs("Start");
-
-            FetchLogsTimmer();
 
             #region Hook
             hookCallback = HookCallback;
@@ -120,33 +95,11 @@ namespace AutoCursorMoveStep
             #endregion
 
 
-            //FetchImageTimmer();
-
             AddRow();
 
             gvAutoList.CellContentClick += new DataGridViewCellEventHandler(gvAutoList_CellContentClick);
         }
-        private System.Windows.Forms.Timer timerFetchLogs;
-        private void FetchLogsTimmer()
-        {
-            timerFetchLogs = new System.Windows.Forms.Timer();
-            timerFetchLogs.Interval = 1000; // Capture every 100 milliseconds
-            timerFetchLogs.Tick += new EventHandler(FetchLogs);
-            timerFetchLogs.Start();
-        }
-        private void FetchLogs(object? sender, EventArgs e)
-        {
-            lock (LogsAuto)
-            {
 
-                LogsAuto.ForEach(f =>
-                {
-                    lbLog.Items.Add(f);
-                });
-                lbLog.SelectedIndex = lbLog.Items.Count - 1;
-                LogsAuto = new List<string>();
-            }
-        }
         private void gvAutoList_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
 
@@ -203,19 +156,11 @@ namespace AutoCursorMoveStep
         }
 
 
-        private System.Windows.Forms.Timer timerFetchImage;
-        private void FetchImageTimmer()
-        {
-            timerFetchImage = new System.Windows.Forms.Timer();
-            timerFetchImage.Interval = 1000; // Capture every 100 milliseconds
-            timerFetchImage.Tick += new EventHandler(FetchImageFromScreen);
-            timerFetchImage.Start();
-        }
 
         private static List<ItemAuto> gvDatas;
         private void FetchImageFromScreen(object? sender, EventArgs e)
         {
-            ReadGV();
+
         }
         public enum GVHeaderPosition
         {
@@ -280,13 +225,27 @@ namespace AutoCursorMoveStep
                 var wid = (int)(item.BotRightX - item.TopLeftX);
                 var hei = (int)(item.BotRightY - item.TopLeftY);
                 item.rectangle = null;
-                if (wid > 0 && hei > 0)
+                //AppendLogs($"Clear rectangle");
+                if (wid > 0 && hei > 0 && IsStart)
                 {
+                    AppendLogs($"Is Start Chck Capture screen");
                     Rectangle captureArea = new Rectangle((int)item.TopLeftX, (int)item.TopLeftY, wid, hei);
                     var img = CaptureScreen(captureArea);
                     //DataGridViewImageColumn imageCol = new DataGridViewImageColumn(); 
                     gvAutoList.Rows[i].Cells[(int)GVHeaderPosition.Position].Value = img;
                     item.rectangle = captureArea;
+
+
+                    var v1 = gvAutoList.Rows[i].Cells[(int)GVHeaderPosition.Position].Value;
+                    var v2 = gvAutoList.Rows[i].Cells[(int)GVHeaderPosition.ReCheck].Value;
+                    if (v1 != null && v2 != null)
+                    {
+                        var bm1 = (Bitmap)v1;
+                        var bm2 = (Bitmap)v2;
+                        item.IsBitMapEqual = true;// ImageComparer.IsLikely(bm1, bm2);
+                        AppendLogs($"Is Likely {item.IsBitMapEqual}");
+                    }
+
                 }
                 if (item.Active == true)
                 {
@@ -316,7 +275,7 @@ namespace AutoCursorMoveStep
 
         private void btnFetchImageManual_Click(object sender, EventArgs e)
         {
-            var gvDatas = ReadGV();
+            gvDatas = ReadGV();
         }
 
 
@@ -327,113 +286,34 @@ namespace AutoCursorMoveStep
             {
                 gvAutoList = new DataGridView();
             }
-
-
             DataGridViewRow dataGridViewRow = new DataGridViewRow();
-
             gvAutoList.Rows.Add();
         }
         private void btnAddRow_Click(object sender, EventArgs e)
         {
             AppendLogs($"Click Add Row");
             AddRow();
-
         }
 
-        public Point GetRandomPointInRectangle(Rectangle rectangle)
-        {
-            Random random = new Random();
-            int x = random.Next(rectangle.Left, rectangle.Right);
-            int y = random.Next(rectangle.Top, rectangle.Bottom);
-
-            Point randomPoint = new Point(x, y);
-            return randomPoint;
-        }
-
-        private int convertSecondToMilisecond(decimal seconds)
-        {
-            // TimeSpan.FromSeconds(seconds);
-            int milliseconds = (int)(seconds * 1000);
-            return milliseconds;
-        }
 
         private void btnStart_Click(object sender, EventArgs e)
         {
             AppendLogs($"Click Start");
-            timmerClickAuto = new System.Windows.Forms.Timer();
-            timmerClickAuto.Interval = 100; // Capture every 100 milliseconds
-            timmerClickAuto.Tick += new EventHandler(MouseClickAutoTimmer);
-            timmerClickAuto.Start();
-
-
-        }
-        private System.Windows.Forms.Timer timmerClickAuto;
-        private void MouseClickAutoTimmer(object? sender, EventArgs e)
-        {
-            var isRoundCorrect =  int.TryParse(txtRoundNumber.Text , out int round);
-            if (isRoundCorrect == false || round < 1)
+            if (IsStart == false)
             {
-                timmerClickAuto.Stop(); 
-                AppendLogs($"Round incorrect {txtRoundNumber.Text}");
-            }
-            int index = 0;
-            var gvDatas = ReadGV();
-            while (round > 0)
-            {
-                AppendLogs($"Round = {round} : index = {index.ToString()} : IsStop = {MoveCursorService.isStop.ToString()}");
-                if (index < gvDatas.Count)
+                var isRoundCorrect = int.TryParse(txtRoundNumber.Text, out int roundInt);
+                if (isRoundCorrect == false || roundInt < 1)
                 {
-                    var isAbleToRun = (gvDatas[index].Active == true && gvDatas[index].rectangle != null);
-                    if (isAbleToRun)
-                    {
-                        int roundRecheck = 0;
-                    RECHECKEQUAL:
-                        if (roundRecheck > 3)
-                        {
-                            round = 0; break; return;
-                        }
-                        var isEqual = true;// IsEqual(index);
-                        AppendLogs($"Round = {round} : index = {index.ToString()} : isEqual :X {isEqual.ToString()}");
-                        if (!isEqual)
-                        {
-                            roundRecheck++;
-                            System.Threading.Thread.Sleep(convertSecondToMilisecond(3));
-                            goto RECHECKEQUAL;
-                        }
-                        var mousePoint = GetRandomPointInRectangle(gvDatas[index].rectangle.Value);
-                        Cursor.Position = mousePoint;
-                        AppendLogs($"Mouse point :X {mousePoint.X} , Y {mousePoint.Y}");
-                        System.Threading.Thread.Sleep(convertSecondToMilisecond(gvDatas[index].Interval.Value));
-                        LeftMouseClick();
-                    }
-                    index++;
+                    AppendLogs($"Round incorrect {txtRoundNumber.Text}");
+                    return;
                 }
-                else
-                {
-                    index = 0;
-                    round--;
-                }
-            }
-            timmerClickAuto.Stop();
-            lbStatusValue.Text = MoveCursorService.isStop.ToString();
-            AppendLogs($"Done job");
-        }
-        private static List<string> LogsAuto { get; set; }
-        private static void AppendLogs(string logs)
-        {
-            if (LogsAuto == null)
-            {
-                LogsAuto = new List<string>();
-            }
+                round = roundInt;
 
-            if (string.IsNullOrEmpty(logs))
-            {
-                return;
+                IsStart = true;
+                MouseClickAutoTimmer();
             }
-
-            logs = DateTime.Now.ToString("HH:mm:sss") + logs;
-            LogsAuto.Add(logs);
         }
+
 
         #region Save data
         private SQLiteConnection connection;
@@ -459,12 +339,12 @@ namespace AutoCursorMoveStep
             {
                 command.ExecuteNonQuery();
             }
-            var dataList = ReadGV();
+            ReadGV();
             // Insert some data into the SQLite database
             string insertDataQuery = "INSERT INTO ItemAuto (TopLeftX, TopLeftY, BotRightX, BotRightY, Interval, Active) VALUES (@TopLeftX, @TopLeftY, @BotRightX, @BotRightY, @Interval, @Active)";
             using (SQLiteCommand command = new SQLiteCommand(insertDataQuery, connection))
             {
-                dataList.ForEach(f =>
+                gvDatas.ForEach(f =>
                 {
                     command.Parameters.AddWithValue("@TopLeftX", f.TopLeftX);
                     command.Parameters.AddWithValue("@TopLeftY", f.TopLeftY);
@@ -500,8 +380,6 @@ namespace AutoCursorMoveStep
             // Open the connection to the SQLite database
             connection.Open();
 
-
-
             // Load the data from the SQLite database into the DataGridView
             string loadDataQuery = "SELECT * FROM ItemAuto";
             using (SQLiteDataAdapter adapter = new SQLiteDataAdapter(loadDataQuery, connection))
@@ -513,7 +391,6 @@ namespace AutoCursorMoveStep
 
                 var row = dataSet.Tables[0].Rows;
                 for (int i = 0; i < row.Count; i++)
-
                 {
                     AddRow();
                     gvAutoList.Rows[i].Cells[(int)GVHeaderPosition.TopLeftX].Value = row[i].Field<decimal>("TopLeftX").ToString();
@@ -524,11 +401,8 @@ namespace AutoCursorMoveStep
                     var dtActive = row[i].Field<long>("Active");
                     gvAutoList.Rows[i].Cells[(int)GVHeaderPosition.Active].Value = dtActive == 1 ? true : false;
                 }
-
-
-
-
             }
+            ReadGV();
         }
 
         private void btnSave_Click(object sender, EventArgs e)
@@ -557,5 +431,103 @@ namespace AutoCursorMoveStep
             AppendLogs($"Click Stop");
         }
 
+
+
+        #region Teleport Cursor Click
+
+        //private static List<ItemAuto> gvDatas;
+        private static int round { get; set; } = 0;
+        private static int index = 0;
+        public static bool IsStart = false;
+
+
+
+
+        private void MouseClickAutoTimmer()
+        {
+            //Application.DoEvents();
+            //System.Threading.Thread.Sleep(timmerClickAuto.Interval);
+            try
+            {
+                while (round > 0)
+                {
+                    ReadGV();
+                    AppendLogs($"Round = {round} : index = {index.ToString()} : IsStop = {MoveCursorService.isStop.ToString()}");
+                    if (index < gvDatas.Count)
+                    {
+                        var isAbleToRun = (gvDatas[index].Active == true);
+                        if (isAbleToRun)
+                        {
+                            int roundRecheck = 0;
+                        RECHECKEQUAL:
+                            if (roundRecheck > 3)
+                            {
+                                round = 0; break;
+                            }
+                            var isEqual = gvDatas[index].IsBitMapEqual;// true;// 
+                            AppendLogs($"Round = {round} : index = {index.ToString()} : Is Equal :X {isEqual.ToString()}");
+                            if (isEqual == false)
+                            {
+                                AppendLogs($"Round = {round} : index = {index.ToString()} : Start wait {roundRecheck}");
+
+                                System.Threading.Thread.Sleep(GenerateRandomMillisecond(3, 5));
+                                //Task.Delay(convertSecondToMilisecond(3)).Wait();
+
+                                AppendLogs($"Round = {round} : index = {index.ToString()} : End wait {roundRecheck}");
+                                ReadGV();
+                                roundRecheck++;
+                                goto RECHECKEQUAL;
+                            }
+                            var mousePoint = GetRandomPointInRectangle(gvDatas[index].rectangle.Value);
+                            Cursor.Position = mousePoint;
+                            AppendLogs($"Mouse point :X {mousePoint.X} , Y {mousePoint.Y}");
+                            System.Threading.Thread.Sleep(convertSecondToMilisecond(gvDatas[index].Interval.Value));
+                            LeftMouseClick();
+                        }
+                        index++;
+                    }
+                    else
+                    {
+                        index = 0;
+                        round--;
+                    }
+                }
+            }
+            finally
+            {
+                IsStart = false;
+            }
+            //  timmerClickAuto.Stop(); 
+            AppendLogs($"Done job");
+        }
+        private static int convertSecondToMilisecond(decimal seconds)
+        {
+            // TimeSpan.FromSeconds(seconds);
+            int milliseconds = (int)(seconds * 1000);
+            return milliseconds;
+        }
+
+        public static Point GetRandomPointInRectangle(Rectangle rectangle)
+        {
+            Random random = new Random();
+            int x = random.Next(rectangle.Left, rectangle.Right);
+            int y = random.Next(rectangle.Top, rectangle.Bottom);
+
+            Point randomPoint = new Point(x, y);
+            return randomPoint;
+        }
+
+        public void AppendLogs(string logs)
+        {
+
+            if (string.IsNullOrEmpty(logs))
+            {
+                return;
+            }
+
+            logs = DateTime.Now.ToString("HH:mm:sss | ") + logs;
+            lbLog.Items.Add(logs);
+        }
+        #endregion
     }
 }

@@ -76,5 +76,35 @@ namespace AutoCursorMoveStep.Service
                 Y = y;
             }
         }
+
+        public static void LeftMouseClick()
+        {
+            MouseEvent(MouseEventFlags.LeftDown);
+            System.Threading.Thread.Sleep(GenerateRandomMillisecond(1, 2));
+            //(new System.Media.SoundPlayer(@"D:\Code\Git\AutoMouse\AutoCursorMoveStep\AutoCursorMoveStep\sound\click.wav")).Play(); ;
+            MouseEvent(MouseEventFlags.LeftUp);
+        }
+        public static int GenerateRandomMillisecond(int start, int end)
+        {
+            if (start > end)
+            {
+                throw new ArgumentException("Start value must be less than or equal to end value.");
+            }
+
+            Random random = new Random();
+            double randomRange = (double)(end - start);
+            double randomSecond = 0.0;
+
+            while (randomSecond % 0.3 != 0)
+            {
+                randomSecond = random.NextDouble() * randomRange;
+                randomSecond += start;
+            }
+
+            int randomMillisecond = (int)randomSecond * 1000;
+            return randomMillisecond;
+        }
+
+
     }
 }

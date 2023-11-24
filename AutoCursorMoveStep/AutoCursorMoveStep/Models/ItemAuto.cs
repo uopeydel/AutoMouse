@@ -20,5 +20,8 @@ namespace AutoCursorMoveStep.Models
 
 
         public Rectangle? rectangle { get; set; }
+        public Bitmap PositionBitMap { get; set; }
+        public Bitmap RecheckBitMap { get; set; }
+        public bool? IsBitMapEqual { get; set; }
     }
 }
