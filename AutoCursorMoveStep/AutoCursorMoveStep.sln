@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.7.34031.279
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutoCursorMoveStep", "AutoCursorMoveStep\AutoCursorMoveStep.csproj", "{52161C73-C082-4D4E-9325-DB242AA9C8A7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RandomPointCurve", "RandomPointCurve\RandomPointCurve.csproj", "{E7527C18-2363-4445-B36C-2B32910F7582}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{52161C73-C082-4D4E-9325-DB242AA9C8A7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{52161C73-C082-4D4E-9325-DB242AA9C8A7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{52161C73-C082-4D4E-9325-DB242AA9C8A7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{52161C73-C082-4D4E-9325-DB242AA9C8A7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E7527C18-2363-4445-B36C-2B32910F7582}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E7527C18-2363-4445-B36C-2B32910F7582}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E7527C18-2363-4445-B36C-2B32910F7582}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E7527C18-2363-4445-B36C-2B32910F7582}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {3EDE9784-BA86-4B10-A607-3B1106EB88C9}
+	EndGlobalSection
+EndGlobal
