@@ -52,6 +52,8 @@
             btnLoad = new Button();
             btnTruncate = new Button();
             lbLog = new ListBox();
+            txtRoundNumber = new TextBox();
+            label2 = new Label();
             ((System.ComponentModel.ISupportInitialize)gvAutoList).BeginInit();
             SuspendLayout();
             // 
@@ -147,7 +149,7 @@
             // 
             // btnStart
             // 
-            btnStart.Location = new Point(123, 474);
+            btnStart.Location = new Point(436, 474);
             btnStart.Margin = new Padding(2);
             btnStart.Name = "btnStart";
             btnStart.Size = new Size(78, 20);
@@ -158,7 +160,7 @@
             // 
             // btnStop
             // 
-            btnStop.Location = new Point(225, 474);
+            btnStop.Location = new Point(538, 474);
             btnStop.Margin = new Padding(2);
             btnStop.Name = "btnStop";
             btnStop.Size = new Size(78, 20);
@@ -169,7 +171,7 @@
             // 
             // btnFetchImageManual
             // 
-            btnFetchImageManual.Location = new Point(328, 473);
+            btnFetchImageManual.Location = new Point(641, 473);
             btnFetchImageManual.Margin = new Padding(2);
             btnFetchImageManual.Name = "btnFetchImageManual";
             btnFetchImageManual.Size = new Size(138, 20);
@@ -216,7 +218,7 @@
             // 
             // btnSave
             // 
-            btnSave.Location = new Point(548, 479);
+            btnSave.Location = new Point(1121, 470);
             btnSave.Name = "btnSave";
             btnSave.Size = new Size(75, 23);
             btnSave.TabIndex = 9;
@@ -226,7 +228,7 @@
             // 
             // btnLoad
             // 
-            btnLoad.Location = new Point(629, 479);
+            btnLoad.Location = new Point(1202, 470);
             btnLoad.Name = "btnLoad";
             btnLoad.Size = new Size(75, 23);
             btnLoad.TabIndex = 10;
@@ -236,7 +238,7 @@
             // 
             // btnTruncate
             // 
-            btnTruncate.Location = new Point(710, 479);
+            btnTruncate.Location = new Point(1283, 470);
             btnTruncate.Name = "btnTruncate";
             btnTruncate.Size = new Size(75, 23);
             btnTruncate.TabIndex = 11;
@@ -253,11 +255,29 @@
             lbLog.Size = new Size(234, 439);
             lbLog.TabIndex = 12;
             // 
+            // txtRoundNumber
+            // 
+            txtRoundNumber.Location = new Point(329, 473);
+            txtRoundNumber.Name = "txtRoundNumber";
+            txtRoundNumber.Size = new Size(100, 23);
+            txtRoundNumber.TabIndex = 13;
+            // 
+            // label2
+            // 
+            label2.AutoSize = true;
+            label2.Location = new Point(251, 475);
+            label2.Name = "label2";
+            label2.Size = new Size(72, 15);
+            label2.TabIndex = 14;
+            label2.Text = "Round Loop";
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1440, 548);
+            Controls.Add(label2);
+            Controls.Add(txtRoundNumber);
             Controls.Add(lbLog);
             Controls.Add(btnTruncate);
             Controls.Add(btnLoad);
@@ -308,5 +328,7 @@
         private DataGridViewTextBoxColumn IsEqualFetch;
         private DataGridViewButtonColumn btnCheckEqual;
         private ListBox lbLog;
+        private TextBox txtRoundNumber;
+        private Label label2;
     }
 }

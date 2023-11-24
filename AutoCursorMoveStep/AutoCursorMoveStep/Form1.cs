@@ -370,7 +370,12 @@ namespace AutoCursorMoveStep
         private System.Windows.Forms.Timer timmerClickAuto;
         private void MouseClickAutoTimmer(object? sender, EventArgs e)
         {
-            int round = 3;
+            var isRoundCorrect =  int.TryParse(txtRoundNumber.Text , out int round);
+            if (isRoundCorrect == false || round < 1)
+            {
+                timmerClickAuto.Stop(); 
+                AppendLogs($"Round incorrect {txtRoundNumber.Text}");
+            }
             int index = 0;
             var gvDatas = ReadGV();
             while (round > 0)
@@ -551,5 +556,6 @@ namespace AutoCursorMoveStep
 
             AppendLogs($"Click Stop");
         }
+
     }
 }
