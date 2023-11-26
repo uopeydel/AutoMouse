@@ -140,10 +140,10 @@
             // btnAddRow
             // 
             btnAddRow.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            btnAddRow.Location = new Point(11, 620);
+            btnAddRow.Location = new Point(11, 622);
             btnAddRow.Margin = new Padding(2);
             btnAddRow.Name = "btnAddRow";
-            btnAddRow.Size = new Size(78, 20);
+            btnAddRow.Size = new Size(75, 25);
             btnAddRow.TabIndex = 1;
             btnAddRow.Text = "Add Row";
             btnAddRow.UseVisualStyleBackColor = true;
@@ -152,10 +152,10 @@
             // btnStart
             // 
             btnStart.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            btnStart.Location = new Point(322, 618);
+            btnStart.Location = new Point(323, 620);
             btnStart.Margin = new Padding(2);
             btnStart.Name = "btnStart";
-            btnStart.Size = new Size(78, 24);
+            btnStart.Size = new Size(75, 25);
             btnStart.TabIndex = 2;
             btnStart.Text = "Start";
             btnStart.UseVisualStyleBackColor = true;
@@ -164,10 +164,10 @@
             // btnStop
             // 
             btnStop.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            btnStop.Location = new Point(424, 618);
+            btnStop.Location = new Point(421, 620);
             btnStop.Margin = new Padding(2);
             btnStop.Name = "btnStop";
-            btnStop.Size = new Size(78, 24);
+            btnStop.Size = new Size(75, 25);
             btnStop.TabIndex = 3;
             btnStop.Text = "Stop (s)";
             btnStop.UseVisualStyleBackColor = true;
@@ -176,10 +176,10 @@
             // btnFetchImageManual
             // 
             btnFetchImageManual.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            btnFetchImageManual.Location = new Point(523, 616);
+            btnFetchImageManual.Location = new Point(523, 618);
             btnFetchImageManual.Margin = new Padding(2);
             btnFetchImageManual.Name = "btnFetchImageManual";
-            btnFetchImageManual.Size = new Size(138, 24);
+            btnFetchImageManual.Size = new Size(75, 25);
             btnFetchImageManual.TabIndex = 4;
             btnFetchImageManual.Text = "Fetch Image Manual";
             btnFetchImageManual.UseVisualStyleBackColor = true;
@@ -189,7 +189,7 @@
             // 
             label1.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             label1.AutoSize = true;
-            label1.Location = new Point(683, 627);
+            label1.Location = new Point(655, 622);
             label1.Name = "label1";
             label1.Size = new Size(39, 15);
             label1.TabIndex = 5;
@@ -199,7 +199,7 @@
             // 
             lbStatusValue.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             lbStatusValue.AutoSize = true;
-            lbStatusValue.Location = new Point(740, 627);
+            lbStatusValue.Location = new Point(726, 622);
             lbStatusValue.Name = "lbStatusValue";
             lbStatusValue.Size = new Size(39, 15);
             lbStatusValue.TabIndex = 6;
@@ -209,7 +209,7 @@
             // 
             lbStepValue.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             lbStepValue.AutoSize = true;
-            lbStepValue.Location = new Point(876, 627);
+            lbStepValue.Location = new Point(844, 622);
             lbStepValue.Name = "lbStepValue";
             lbStepValue.Size = new Size(58, 15);
             lbStepValue.TabIndex = 8;
@@ -219,7 +219,7 @@
             // 
             label3.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             label3.AutoSize = true;
-            label3.Location = new Point(819, 627);
+            label3.Location = new Point(788, 622);
             label3.Name = "label3";
             label3.Size = new Size(30, 15);
             label3.TabIndex = 7;
@@ -228,9 +228,9 @@
             // btnSave
             // 
             btnSave.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            btnSave.Location = new Point(955, 616);
+            btnSave.Location = new Point(955, 620);
             btnSave.Name = "btnSave";
-            btnSave.Size = new Size(75, 24);
+            btnSave.Size = new Size(75, 25);
             btnSave.TabIndex = 9;
             btnSave.Text = "Save";
             btnSave.UseVisualStyleBackColor = true;
@@ -239,9 +239,9 @@
             // btnLoad
             // 
             btnLoad.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            btnLoad.Location = new Point(1036, 616);
+            btnLoad.Location = new Point(1036, 618);
             btnLoad.Name = "btnLoad";
-            btnLoad.Size = new Size(75, 24);
+            btnLoad.Size = new Size(75, 25);
             btnLoad.TabIndex = 10;
             btnLoad.Text = "Load";
             btnLoad.UseVisualStyleBackColor = true;
@@ -250,9 +250,9 @@
             // btnTruncate
             // 
             btnTruncate.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            btnTruncate.Location = new Point(1117, 616);
+            btnTruncate.Location = new Point(1117, 618);
             btnTruncate.Name = "btnTruncate";
-            btnTruncate.Size = new Size(75, 24);
+            btnTruncate.Size = new Size(75, 25);
             btnTruncate.TabIndex = 11;
             btnTruncate.Text = "Clear";
             btnTruncate.UseVisualStyleBackColor = true;
@@ -271,7 +271,7 @@
             // txtRoundNumber
             // 
             txtRoundNumber.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            txtRoundNumber.Location = new Point(197, 616);
+            txtRoundNumber.Location = new Point(208, 624);
             txtRoundNumber.Name = "txtRoundNumber";
             txtRoundNumber.Size = new Size(100, 23);
             txtRoundNumber.TabIndex = 13;
@@ -281,7 +281,7 @@
             // 
             label2.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             label2.AutoSize = true;
-            label2.Location = new Point(110, 627);
+            label2.Location = new Point(114, 627);
             label2.Name = "label2";
             label2.Size = new Size(72, 15);
             label2.TabIndex = 14;

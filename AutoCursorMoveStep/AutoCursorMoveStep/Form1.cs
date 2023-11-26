@@ -137,8 +137,10 @@ namespace AutoCursorMoveStep
                     return;
                 }
                 IsEqual(e.RowIndex);
+
             }
         }
+         
 
         private bool IsEqual(int gvRowIndex)
         {
@@ -499,6 +501,7 @@ namespace AutoCursorMoveStep
             }
             //  timmerClickAuto.Stop(); 
             AppendLogs($"Done job");
+            MessageBox.Show($"Done job");
         }
         private static int convertSecondToMilisecond(decimal seconds)
         {

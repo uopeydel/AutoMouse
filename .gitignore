@@ -4,3 +4,6 @@ AutoCursorMoveStep/AutoCursorMoveStep/bin/
 AutoCursorMoveStep/.vs/
 AutoCursorMoveStep/AutoCursorMoveStep/Properties/PublishProfiles/
 AutoCursorMoveStep/AutoCursorMoveStep/AutoCursorMoveStep.csproj.user
+AutoCursorMoveStep/DetectSameImageInScreen/obj/
+AutoCursorMoveStep/DetectSameImageInScreen/bin/
+AutoCursorMoveStep/RandomPointCurve/bin/
