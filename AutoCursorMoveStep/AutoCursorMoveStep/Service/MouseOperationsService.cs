@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Runtime.InteropServices;
 using System.Security.Policy;
+using System.Media;
 
 namespace AutoCursorMoveStep.Service
 {
@@ -82,7 +83,8 @@ namespace AutoCursorMoveStep.Service
         {
             MouseEvent(MouseEventFlags.LeftDown);
             System.Threading.Thread.Sleep(GenerateRandomMillisecond(1, 2));
-            (new System.Media.SoundPlayer(@"D:\Code\Git\AutoMouse\AutoCursorMoveStep\AutoCursorMoveStep\sound\click.wav")).Play(); ;
+            SystemSounds.Beep.Play();
+            //(new System.Media.SoundPlayer(@"D:\Code\Git\AutoMouse\AutoCursorMoveStep\AutoCursorMoveStep\sound\click.wav")).Play(); ;
             MouseEvent(MouseEventFlags.LeftUp);
         }
         public static int GenerateRandomMillisecond(int start, int end)

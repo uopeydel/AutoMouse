@@ -8,6 +8,7 @@ using System.Data;
 using static AutoCursorMoveStep.Service.MouseOperationsService;
 using System.Text;
 using Timer = System.Windows.Forms.Timer;
+using System.Media;
 
 namespace AutoCursorMoveStep
 {
@@ -102,6 +103,7 @@ namespace AutoCursorMoveStep
 
             AppendLogs($"Load");
             LoadToGv();
+            SystemSounds.Beep.Play();
         }
 
         private void gvAutoList_CellContentClick(object sender, DataGridViewCellEventArgs e)
@@ -464,7 +466,7 @@ namespace AutoCursorMoveStep
         #region Teleport Cursor Click
         private static Timer cursorTimer = new Timer();
         private int timerMilisecCountForStepProcess = 0;
-
+        private int msWaitRecheck = 0;
         private static int round { get; set; } = 0;
         private static int processNumber = 0;
         public static bool IsStart = false;
@@ -480,13 +482,16 @@ namespace AutoCursorMoveStep
                 if (round <= 0)
                 {
                     cursorTimer.Stop();
+                    SystemSounds.Hand.Play();
+                    SystemSounds.Asterisk.Play();
+                    SystemSounds.Exclamation.Play();
                     AppendLogs($"Round end ");
                     MessageBox.Show($"Round end ");
                     round = 0;
                     IsStart = false;
                     processNumber = 0;
                     roundRecheck = 0;
-                    timerMilisecCountForStepProcess = 0;
+                    timerMilisecCountForStepProcess = msWaitRecheck = 0;
                     return;
                 }
 
@@ -495,7 +500,7 @@ namespace AutoCursorMoveStep
                 {
                     processNumber = 0;
                     round--;
-                    timerMilisecCountForStepProcess = 0;
+                    timerMilisecCountForStepProcess = msWaitRecheck = 0;
                     roundRecheck = 0;
                     return;
                 }
@@ -510,7 +515,7 @@ namespace AutoCursorMoveStep
                     IsStart = false;
                     processNumber = 0;
                     roundRecheck = 0;
-                    timerMilisecCountForStepProcess = 0;
+                    timerMilisecCountForStepProcess = msWaitRecheck = 0;
                     return;
                 }
 
@@ -520,16 +525,29 @@ namespace AutoCursorMoveStep
                     return;
                 }
 
-                if (roundRecheck > 0)
+                int limitRoundCheck = 10;
+                if (roundRecheck > 0 && roundRecheck <= limitRoundCheck)
                 {
+                    if (timerMilisecCountForStepProcess > msWaitRecheck)
+                    {
+                        goto RECHECKEQUAL;
+                    }
+
                     //Continue waiting round recheck
                     return;
                 }
 
+                
                 roundRecheck = 1;
             RECHECKEQUAL:
-                if (roundRecheck > 5)
+                if (roundRecheck > limitRoundCheck)
                 {
+                    //if (processNumber == 2)
+                    //{
+                    //    System.Threading.Thread.Sleep(3000);
+                    //    limitRoundCheck = 10;
+                    //    goto RECHECKEQUAL;
+                    //}
                     cursorTimer.Stop();
                     AppendLogs($"Unable to check image same = {processNumber} ");
                     MessageBox.Show($"Unable to check image same = {processNumber} ");
@@ -537,23 +555,20 @@ namespace AutoCursorMoveStep
                     IsStart = false;
                     processNumber = 0;
                     roundRecheck = 0;
-                    timerMilisecCountForStepProcess = 0;
+                    timerMilisecCountForStepProcess = msWaitRecheck = 0;
                     return;
                 }
 
                 var isEqual = SearchEqualImageInScreen(processNumber);// gvDatas[processNumber].IsBitMapEqual;// true;// 
                 AppendLogs($"Round = {round} : Process No = {processNumber} : Is Equal :X {isEqual}");
                 if (isEqual == false)
-                {
-                    AppendLogs($"Round = {round} : Process No = {processNumber} : Start wait {roundRecheck}");
-
-                    var secWaitRecheck = GenerateRandomMillisecond(4, 6);
-                    System.Threading.Thread.Sleep(secWaitRecheck);
-
-                    AppendLogs($"Round = {round} : Process No = {processNumber} : End wait {roundRecheck} | wait {secWaitRecheck}");
+                { 
+                    msWaitRecheck = GenerateRandomMillisecond(4, 6) + timerMilisecCountForStepProcess;
+                    
+                    AppendLogs($"Round = {round} : Process No = {processNumber} : WaitRound {roundRecheck} | Wait Time {msWaitRecheck}");
 
                     roundRecheck++;
-                    goto RECHECKEQUAL;
+                    return;
                 }
                 var mousePoint = GetRandomPointInRectangle(gvDatas[processNumber].rectangle.Value);
                 Cursor.Position = mousePoint;
@@ -562,7 +577,7 @@ namespace AutoCursorMoveStep
 
                 processNumber++;
                 roundRecheck = 0;
-                timerMilisecCountForStepProcess = 0;
+                timerMilisecCountForStepProcess = msWaitRecheck = 0;
             }
             catch (Exception ex)
             {
@@ -599,7 +614,7 @@ namespace AutoCursorMoveStep
                 Rectangle captureAreaFound = new Rectangle((int)gvDatas[processNumber].TopLeftX, (int)gvDatas[processNumber].TopLeftY, (int)rectWidth, (int)rectHeight);
                 CaptureScreen(captureAreaFound);
                 gvAutoList.Rows[processNumber].Cells[(int)GVHeaderPosition.Position].Value = _croppedBitmap;
-
+                SystemSounds.Question.Play();
                 AppendLogs("bitmapSmall is not found in bitmapBig");
                 return false;
             }
