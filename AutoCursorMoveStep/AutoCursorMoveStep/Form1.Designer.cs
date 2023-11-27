@@ -43,16 +43,13 @@
             btnAddRow = new Button();
             btnStart = new Button();
             btnStop = new Button();
-            label1 = new Label();
-            lbStatusValue = new Label();
-            lbStepValue = new Label();
-            label3 = new Label();
             btnSave = new Button();
             btnLoad = new Button();
             btnTruncate = new Button();
             lbLog = new ListBox();
             txtRoundNumber = new TextBox();
             label2 = new Label();
+            chkHookSpacePosition = new CheckBox();
             ((System.ComponentModel.ISupportInitialize)gvAutoList).BeginInit();
             SuspendLayout();
             // 
@@ -172,46 +169,6 @@
             btnStop.UseVisualStyleBackColor = true;
             btnStop.Click += btnStop_Click;
             // 
-            // label1
-            // 
-            label1.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            label1.AutoSize = true;
-            label1.Location = new Point(515, 626);
-            label1.Name = "label1";
-            label1.Size = new Size(39, 15);
-            label1.TabIndex = 5;
-            label1.Text = "Status";
-            // 
-            // lbStatusValue
-            // 
-            lbStatusValue.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            lbStatusValue.AutoSize = true;
-            lbStatusValue.Location = new Point(586, 626);
-            lbStatusValue.Name = "lbStatusValue";
-            lbStatusValue.Size = new Size(39, 15);
-            lbStatusValue.TabIndex = 6;
-            lbStatusValue.Text = "Status";
-            // 
-            // lbStepValue
-            // 
-            lbStepValue.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            lbStepValue.AutoSize = true;
-            lbStepValue.Location = new Point(704, 626);
-            lbStepValue.Name = "lbStepValue";
-            lbStepValue.Size = new Size(58, 15);
-            lbStepValue.TabIndex = 8;
-            lbStepValue.Text = "StepValue";
-            // 
-            // label3
-            // 
-            label3.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            label3.AutoSize = true;
-            label3.Location = new Point(648, 626);
-            label3.Name = "label3";
-            label3.Size = new Size(30, 15);
-            label3.TabIndex = 7;
-            label3.Text = "Step";
-            // 
             // btnSave
             // 
             btnSave.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
@@ -262,7 +219,7 @@
             txtRoundNumber.Name = "txtRoundNumber";
             txtRoundNumber.Size = new Size(100, 23);
             txtRoundNumber.TabIndex = 13;
-            txtRoundNumber.Text = "3";
+            txtRoundNumber.Text = "10";
             // 
             // label2
             // 
@@ -274,21 +231,29 @@
             label2.TabIndex = 14;
             label2.Text = "Round Loop";
             // 
+            // chkHookSpacePosition
+            // 
+            chkHookSpacePosition.AutoSize = true;
+            chkHookSpacePosition.Location = new Point(522, 623);
+            chkHookSpacePosition.Name = "chkHookSpacePosition";
+            chkHookSpacePosition.Size = new Size(168, 19);
+            chkHookSpacePosition.TabIndex = 15;
+            chkHookSpacePosition.Text = "Hook Position By Spacebar";
+            chkHookSpacePosition.UseVisualStyleBackColor = true;
+            chkHookSpacePosition.MouseUp += chkHookSpacePosition_MouseUp;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1298, 651);
+            Controls.Add(chkHookSpacePosition);
             Controls.Add(label2);
             Controls.Add(txtRoundNumber);
             Controls.Add(lbLog);
             Controls.Add(btnTruncate);
             Controls.Add(btnLoad);
             Controls.Add(btnSave);
-            Controls.Add(lbStepValue);
-            Controls.Add(label3);
-            Controls.Add(lbStatusValue);
-            Controls.Add(label1);
             Controls.Add(btnStop);
             Controls.Add(btnStart);
             Controls.Add(btnAddRow);
@@ -310,10 +275,6 @@
         private Button btnAddRow;
         private Button btnStart;
         private Button btnStop;
-        private Label label1;
-        private Label lbStatusValue;
-        private Label lbStepValue;
-        private Label label3;
         private Button btnSave;
         private Button btnLoad;
         private Button btnTruncate;
@@ -331,5 +292,6 @@
         private TextBox txtRoundNumber;
         private Label label2;
         public ListBox lbLog;
+        private CheckBox chkHookSpacePosition;
     }
 }

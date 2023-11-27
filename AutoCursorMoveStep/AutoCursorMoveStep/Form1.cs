@@ -9,6 +9,7 @@ using static AutoCursorMoveStep.Service.MouseOperationsService;
 using System.Text;
 using Timer = System.Windows.Forms.Timer;
 using System.Media;
+using System.Drawing.Imaging;
 
 namespace AutoCursorMoveStep
 {
@@ -64,6 +65,7 @@ namespace AutoCursorMoveStep
                 if (vkCode == VK_S)
                 {
                     MoveCursorService.isStop = true;
+                    btnStop_Click(null,null);
                 }
 
                 if (vkCode == VK_A)
@@ -89,11 +91,13 @@ namespace AutoCursorMoveStep
             AppendLogs("Start");
 
             #region Hook
+
             hookCallback = HookCallback;
-            // Start the keyboard hook
-            hookId = SetHook(hookCallback);
-            //// Stop the keyboard hook
-            //UnhookWindowsHookEx(hookId);
+            if (chkHookSpacePosition.Checked == true)
+            {
+                // Start the keyboard hook
+                hookId = SetHook(hookCallback);
+            }
             #endregion
 
 
@@ -106,6 +110,16 @@ namespace AutoCursorMoveStep
             SystemSounds.Beep.Play();
         }
 
+        private string GetImagePath(string filePath)
+        {
+            var currDir = Directory.GetCurrentDirectory();
+            var dirImage = Path.Combine(currDir, "image");
+            if (Directory.Exists(dirImage) == false)
+            {
+                Directory.CreateDirectory(dirImage);
+            }
+            return Path.Combine(dirImage, filePath);
+        }
         private void gvAutoList_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
 
@@ -131,6 +145,10 @@ namespace AutoCursorMoveStep
                     CaptureScreen(captureArea);
                     //DataGridViewImageColumn imageCol = new DataGridViewImageColumn(); 
                     gvAutoList.Rows[e.RowIndex].Cells[(int)GVHeaderPosition.ReCheck].Value = _croppedBitmap;
+
+
+                    var imageFilePath = GetImagePath($"{e.RowIndex}.png");
+                    _croppedBitmap.Save(imageFilePath, ImageFormat.Png);
 
                 }
 
@@ -348,6 +366,14 @@ namespace AutoCursorMoveStep
         private void btnStop_Click(object sender, EventArgs e)
         {
             AppendLogs($"Click Stop");
+
+            cursorTimer.Stop();
+           
+            round = 0;
+            IsStart = false;
+            processNumber = 0;
+            roundRecheck = 0;
+            timerMilisecCountForStepProcess = msWaitRecheck = 0;
         }
 
         #region Save data
@@ -435,6 +461,14 @@ namespace AutoCursorMoveStep
                     gvAutoList.Rows[i].Cells[(int)GVHeaderPosition.Interval].Value = row[i].Field<decimal>("Interval").ToString();
                     var dtActive = row[i].Field<long>("Active");
                     gvAutoList.Rows[i].Cells[(int)GVHeaderPosition.Active].Value = dtActive == 1 ? true : false;
+
+
+                    var imageFilePath = GetImagePath($"{i}.png");
+                    if (File.Exists(imageFilePath))
+                    {
+                        Image imageFile = Image.FromFile(imageFilePath);
+                        gvAutoList.Rows[i].Cells[(int)GVHeaderPosition.ReCheck].Value = imageFile;
+                    }
                 }
             }
             ReadGV();
@@ -537,7 +571,7 @@ namespace AutoCursorMoveStep
                     return;
                 }
 
-                
+
                 roundRecheck = 1;
             RECHECKEQUAL:
                 if (roundRecheck > limitRoundCheck)
@@ -562,9 +596,9 @@ namespace AutoCursorMoveStep
                 var isEqual = SearchEqualImageInScreen(processNumber);// gvDatas[processNumber].IsBitMapEqual;// true;// 
                 AppendLogs($"Round = {round} : Process No = {processNumber} : Is Equal :X {isEqual}");
                 if (isEqual == false)
-                { 
+                {
                     msWaitRecheck = GenerateRandomMillisecond(4, 6) + timerMilisecCountForStepProcess;
-                    
+
                     AppendLogs($"Round = {round} : Process No = {processNumber} : WaitRound {roundRecheck} | Wait Time {msWaitRecheck}");
 
                     roundRecheck++;
@@ -599,7 +633,7 @@ namespace AutoCursorMoveStep
             var rectWidth = gvDatas[processNumber].BotRightX - gvDatas[processNumber].TopLeftX;
             var rectHeight = gvDatas[processNumber].BotRightY - gvDatas[processNumber].TopLeftY;
             Point positionResult = FindBitmapSmallPosition(screenShort, _bmSmall);
-            
+
             if (positionResult.X != -1 && positionResult.Y != -1)
             {
                 AppendLogs("bitmapSmall is found at position (" + positionResult.X + ", " + positionResult.Y + ")");
@@ -695,5 +729,19 @@ namespace AutoCursorMoveStep
             lbLog.Items.Add(logs);
         }
         #endregion
+
+        private void chkHookSpacePosition_MouseUp(object sender, MouseEventArgs e)
+        {
+            if (chkHookSpacePosition.Checked == true)
+            {
+                // Start the keyboard hook
+                hookId = SetHook(hookCallback);
+            }
+            else
+            {
+                // Stop the keyboard hook
+                UnhookWindowsHookEx(hookId);
+            }
+        }
     }
 }
