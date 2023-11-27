@@ -3,7 +3,8 @@
  - Install
     dotnet 7
         https://dotnet.microsoft.com/en-us/download/dotnet/7.0
-    vso 2022
+
+ - vso 2022
         https://visualstudio.microsoft.com/vs/
 
 # Note

@@ -21,8 +21,9 @@ namespace AutoCursorMoveStep.Service
             Move = 0x00000001,
             Absolute = 0x00008000,
             RightDown = 0x00000008,
-            RightUp = 0x00000010
-        }
+            RightUp = 0x00000010,
+            MOUSEEVENTF_WHEEL = 0x0800
+    }
 
         [DllImport("user32.dll", EntryPoint = "SetCursorPos")]
         [return: MarshalAs(UnmanagedType.Bool)]
@@ -87,6 +88,20 @@ namespace AutoCursorMoveStep.Service
             //(new System.Media.SoundPlayer(@"D:\Code\Git\AutoMouse\AutoCursorMoveStep\AutoCursorMoveStep\sound\click.wav")).Play(); ;
             MouseEvent(MouseEventFlags.LeftUp);
         }
+
+        public static void MouseEventWheelDown()
+        {
+            MousePoint position = GetCursorPosition();
+
+            mouse_event
+                ((int)MouseEventFlags.MOUSEEVENTF_WHEEL,
+                 0,
+                 0,
+                 -800,
+                 0)
+                ;
+        }
+
         public static int GenerateRandomMillisecond(int start, int end)
         {
             if (start > end)

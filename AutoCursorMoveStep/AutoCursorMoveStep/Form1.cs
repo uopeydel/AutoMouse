@@ -23,6 +23,8 @@ namespace AutoCursorMoveStep
         private const int WM_KEYDOWN = 0x0100;
         private const int VK_A = 0x41;
         private const int VK_S = 83;
+
+        private const int VK_T = 84;
         private const int VK_SPACE = 32;
 
         // Hook handle
@@ -71,6 +73,11 @@ namespace AutoCursorMoveStep
                 if (vkCode == VK_A)
                 {
                     LeftMouseClick();
+                }
+
+                if (vkCode == VK_T)
+                {
+                    MouseEventWheelDown();
                 }
 
                 if (vkCode == VK_SPACE)
