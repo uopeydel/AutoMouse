@@ -143,7 +143,7 @@
             // btnAddRow
             // 
             btnAddRow.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            btnAddRow.Location = new Point(11, 622);
+            btnAddRow.Location = new Point(20, 615);
             btnAddRow.Margin = new Padding(2);
             btnAddRow.Name = "btnAddRow";
             btnAddRow.Size = new Size(75, 25);
@@ -155,7 +155,7 @@
             // btnStart
             // 
             btnStart.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            btnStart.Location = new Point(304, 622);
+            btnStart.Location = new Point(303, 616);
             btnStart.Margin = new Padding(2);
             btnStart.Name = "btnStart";
             btnStart.Size = new Size(75, 25);
@@ -167,7 +167,7 @@
             // btnStop
             // 
             btnStop.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            btnStop.Location = new Point(383, 624);
+            btnStop.Location = new Point(382, 615);
             btnStop.Margin = new Padding(2);
             btnStop.Name = "btnStop";
             btnStop.Size = new Size(75, 25);
@@ -179,7 +179,7 @@
             // btnSave
             // 
             btnSave.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            btnSave.Location = new Point(767, 621);
+            btnSave.Location = new Point(767, 612);
             btnSave.Name = "btnSave";
             btnSave.Size = new Size(75, 25);
             btnSave.TabIndex = 9;
@@ -190,7 +190,7 @@
             // btnLoad
             // 
             btnLoad.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            btnLoad.Location = new Point(848, 619);
+            btnLoad.Location = new Point(848, 612);
             btnLoad.Name = "btnLoad";
             btnLoad.Size = new Size(75, 25);
             btnLoad.TabIndex = 10;
@@ -201,7 +201,7 @@
             // btnTruncate
             // 
             btnTruncate.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            btnTruncate.Location = new Point(929, 619);
+            btnTruncate.Location = new Point(929, 612);
             btnTruncate.Name = "btnTruncate";
             btnTruncate.Size = new Size(75, 25);
             btnTruncate.TabIndex = 11;
@@ -222,8 +222,7 @@
             // label2
             // 
             label2.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            label2.AutoSize = true;
-            label2.Location = new Point(95, 629);
+            label2.Location = new Point(100, 620);
             label2.Name = "label2";
             label2.Size = new Size(72, 15);
             label2.TabIndex = 14;
@@ -231,8 +230,8 @@
             // 
             // chkHookSpacePosition
             // 
-            chkHookSpacePosition.AutoSize = true;
-            chkHookSpacePosition.Location = new Point(463, 626);
+            chkHookSpacePosition.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            chkHookSpacePosition.Location = new Point(478, 616);
             chkHookSpacePosition.Name = "chkHookSpacePosition";
             chkHookSpacePosition.Size = new Size(168, 19);
             chkHookSpacePosition.TabIndex = 15;
@@ -242,7 +241,8 @@
             // 
             // numRoundNumber
             // 
-            numRoundNumber.Location = new Point(179, 622);
+            numRoundNumber.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            numRoundNumber.Location = new Point(178, 616);
             numRoundNumber.Maximum = new decimal(new int[] { 1000, 0, 0, 0 });
             numRoundNumber.Name = "numRoundNumber";
             numRoundNumber.Size = new Size(120, 23);
@@ -273,7 +273,6 @@
             ((System.ComponentModel.ISupportInitialize)gvAutoList).EndInit();
             ((System.ComponentModel.ISupportInitialize)numRoundNumber).EndInit();
             ResumeLayout(false);
-            PerformLayout();
         }
 
         #endregion

@@ -536,7 +536,7 @@ VALUES (@TopLeftX, @TopLeftY, @BotRightX, @BotRightY, @Interval, @Active , @Allo
         private int processNumber = 0;
         public bool IsStart = false;
         private int roundRecheck = 0;
-        private Rectangle captureAreaFound ;
+        private Rectangle captureAreaFound;
 
         private void MouseClickAutoTimmer()
         {
@@ -602,7 +602,7 @@ VALUES (@TopLeftX, @TopLeftY, @BotRightX, @BotRightY, @Interval, @Active , @Allo
                 var isEqual = SearchEqualImageInScreen(processNumber);// gvDatas[processNumber].IsBitMapEqual;// true;// 
                 AppendLogs($"Round = {round} : Process No = {processNumber} : Is Equal :X {isEqual}");
                 if (isEqual == false && gvDatas[processNumber].AllowNotRecheckImage == false)
-                {  
+                {
                     roundRecheck++;
                     msWaitRecheck = GenerateRandomMillisecond(4, 6) + timerMilisecCountForStepProcess;
 
@@ -632,7 +632,7 @@ VALUES (@TopLeftX, @TopLeftY, @BotRightX, @BotRightY, @Interval, @Active , @Allo
         }
 
         private bool SearchEqualImageInScreen(int processNumber)
-        { 
+        {
             Rectangle captureAreaForSearch = new Rectangle((int)0, (int)0, (int)Screen.PrimaryScreen.Bounds.Width, (int)Screen.PrimaryScreen.Bounds.Height);
             CaptureScreen(captureAreaForSearch);
             var screenShort = _croppedBitmap;
