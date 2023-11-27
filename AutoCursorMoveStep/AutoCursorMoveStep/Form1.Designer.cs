@@ -43,7 +43,6 @@
             btnAddRow = new Button();
             btnStart = new Button();
             btnStop = new Button();
-            btnFetchImageManual = new Button();
             label1 = new Label();
             lbStatusValue = new Label();
             lbStepValue = new Label();
@@ -67,7 +66,7 @@
             gvAutoList.Name = "gvAutoList";
             gvAutoList.RowHeadersWidth = 62;
             gvAutoList.RowTemplate.Height = 100;
-            gvAutoList.Size = new Size(1157, 587);
+            gvAutoList.Size = new Size(984, 587);
             gvAutoList.TabIndex = 0;
             // 
             // imgPosition
@@ -173,23 +172,11 @@
             btnStop.UseVisualStyleBackColor = true;
             btnStop.Click += btnStop_Click;
             // 
-            // btnFetchImageManual
-            // 
-            btnFetchImageManual.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            btnFetchImageManual.Location = new Point(523, 618);
-            btnFetchImageManual.Margin = new Padding(2);
-            btnFetchImageManual.Name = "btnFetchImageManual";
-            btnFetchImageManual.Size = new Size(75, 25);
-            btnFetchImageManual.TabIndex = 4;
-            btnFetchImageManual.Text = "Fetch Image Manual";
-            btnFetchImageManual.UseVisualStyleBackColor = true;
-            btnFetchImageManual.Click += btnFetchImageManual_Click;
-            // 
             // label1
             // 
             label1.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             label1.AutoSize = true;
-            label1.Location = new Point(655, 622);
+            label1.Location = new Point(515, 626);
             label1.Name = "label1";
             label1.Size = new Size(39, 15);
             label1.TabIndex = 5;
@@ -199,7 +186,7 @@
             // 
             lbStatusValue.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             lbStatusValue.AutoSize = true;
-            lbStatusValue.Location = new Point(726, 622);
+            lbStatusValue.Location = new Point(586, 626);
             lbStatusValue.Name = "lbStatusValue";
             lbStatusValue.Size = new Size(39, 15);
             lbStatusValue.TabIndex = 6;
@@ -209,7 +196,7 @@
             // 
             lbStepValue.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             lbStepValue.AutoSize = true;
-            lbStepValue.Location = new Point(844, 622);
+            lbStepValue.Location = new Point(704, 626);
             lbStepValue.Name = "lbStepValue";
             lbStepValue.Size = new Size(58, 15);
             lbStepValue.TabIndex = 8;
@@ -219,7 +206,7 @@
             // 
             label3.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             label3.AutoSize = true;
-            label3.Location = new Point(788, 622);
+            label3.Location = new Point(648, 626);
             label3.Name = "label3";
             label3.Size = new Size(30, 15);
             label3.TabIndex = 7;
@@ -228,7 +215,7 @@
             // btnSave
             // 
             btnSave.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            btnSave.Location = new Point(955, 620);
+            btnSave.Location = new Point(815, 624);
             btnSave.Name = "btnSave";
             btnSave.Size = new Size(75, 25);
             btnSave.TabIndex = 9;
@@ -239,7 +226,7 @@
             // btnLoad
             // 
             btnLoad.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            btnLoad.Location = new Point(1036, 618);
+            btnLoad.Location = new Point(896, 622);
             btnLoad.Name = "btnLoad";
             btnLoad.Size = new Size(75, 25);
             btnLoad.TabIndex = 10;
@@ -250,7 +237,7 @@
             // btnTruncate
             // 
             btnTruncate.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            btnTruncate.Location = new Point(1117, 618);
+            btnTruncate.Location = new Point(977, 622);
             btnTruncate.Name = "btnTruncate";
             btnTruncate.Size = new Size(75, 25);
             btnTruncate.TabIndex = 11;
@@ -263,9 +250,9 @@
             lbLog.Dock = DockStyle.Right;
             lbLog.FormattingEnabled = true;
             lbLog.ItemHeight = 15;
-            lbLog.Location = new Point(1198, 0);
+            lbLog.Location = new Point(1058, 0);
             lbLog.Name = "lbLog";
-            lbLog.Size = new Size(347, 651);
+            lbLog.Size = new Size(240, 651);
             lbLog.TabIndex = 12;
             // 
             // txtRoundNumber
@@ -291,7 +278,7 @@
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1545, 651);
+            ClientSize = new Size(1298, 651);
             Controls.Add(label2);
             Controls.Add(txtRoundNumber);
             Controls.Add(lbLog);
@@ -302,7 +289,6 @@
             Controls.Add(label3);
             Controls.Add(lbStatusValue);
             Controls.Add(label1);
-            Controls.Add(btnFetchImageManual);
             Controls.Add(btnStop);
             Controls.Add(btnStart);
             Controls.Add(btnAddRow);
@@ -324,7 +310,6 @@
         private Button btnAddRow;
         private Button btnStart;
         private Button btnStop;
-        private Button btnFetchImageManual;
         private Label label1;
         private Label lbStatusValue;
         private Label lbStepValue;

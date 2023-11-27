@@ -7,6 +7,7 @@ using System.Data.SQLite;
 using System.Data;
 using static AutoCursorMoveStep.Service.MouseOperationsService;
 using System.Text;
+using Timer = System.Windows.Forms.Timer;
 
 namespace AutoCursorMoveStep
 {
@@ -98,6 +99,9 @@ namespace AutoCursorMoveStep
             AddRow();
 
             gvAutoList.CellContentClick += new DataGridViewCellEventHandler(gvAutoList_CellContentClick);
+
+            AppendLogs($"Load");
+            LoadToGv();
         }
 
         private void gvAutoList_CellContentClick(object sender, DataGridViewCellEventArgs e)
@@ -122,9 +126,9 @@ namespace AutoCursorMoveStep
                 if (wid > 0 && hei > 0)
                 {
                     Rectangle captureArea = new Rectangle((int)item.TopLeftX, (int)item.TopLeftY, wid, hei);
-                    var img = CaptureScreen(captureArea);
+                    CaptureScreen(captureArea);
                     //DataGridViewImageColumn imageCol = new DataGridViewImageColumn(); 
-                    gvAutoList.Rows[e.RowIndex].Cells[(int)GVHeaderPosition.ReCheck].Value = img;
+                    gvAutoList.Rows[e.RowIndex].Cells[(int)GVHeaderPosition.ReCheck].Value = _croppedBitmap;
 
                 }
 
@@ -140,7 +144,7 @@ namespace AutoCursorMoveStep
 
             }
         }
-         
+
 
         private bool IsEqual(int gvRowIndex)
         {
@@ -226,29 +230,26 @@ namespace AutoCursorMoveStep
 
                 var wid = (int)(item.BotRightX - item.TopLeftX);
                 var hei = (int)(item.BotRightY - item.TopLeftY);
-                item.rectangle = null;
+                Rectangle captureArea = new Rectangle((int)item.TopLeftX, (int)item.TopLeftY, wid, hei);
+                item.rectangle = captureArea;
                 //AppendLogs($"Clear rectangle");
-                if (wid > 0 && hei > 0 && IsStart)
-                {
-                    AppendLogs($"Is Start Chck Capture screen");
-                    Rectangle captureArea = new Rectangle((int)item.TopLeftX, (int)item.TopLeftY, wid, hei);
-                    var img = CaptureScreen(captureArea);
-                    //DataGridViewImageColumn imageCol = new DataGridViewImageColumn(); 
-                    gvAutoList.Rows[i].Cells[(int)GVHeaderPosition.Position].Value = img;
-                    item.rectangle = captureArea;
+                //if (wid > 0 && hei > 0 && IsStart)
+                //{
+                //    AppendLogs($"Is Start Chck Capture screen"); 
+                //    CaptureScreen(captureArea);
+                //    DataGridViewImageColumn imageCol = new DataGridViewImageColumn();
+                //    gvAutoList.Rows[i].Cells[(int)GVHeaderPosition.Position].Value = _croppedBitmap;
 
-
-                    var v1 = gvAutoList.Rows[i].Cells[(int)GVHeaderPosition.Position].Value;
-                    var v2 = gvAutoList.Rows[i].Cells[(int)GVHeaderPosition.ReCheck].Value;
-                    if (v1 != null && v2 != null)
-                    {
-                        var bm1 = (Bitmap)v1;
-                        var bm2 = (Bitmap)v2;
-                        item.IsBitMapEqual = true;// ImageComparer.IsLikely(bm1, bm2);
-                        AppendLogs($"Is Likely {item.IsBitMapEqual}");
-                    }
-
-                }
+                //    var v1 = gvAutoList.Rows[i].Cells[(int)GVHeaderPosition.Position].Value;
+                //    var v2 = gvAutoList.Rows[i].Cells[(int)GVHeaderPosition.ReCheck].Value;
+                //    if (v1 != null && v2 != null)
+                //    {
+                //        var bm1 = (Bitmap)v1;
+                //        var bm2 = (Bitmap)v2;
+                //        item.IsBitMapEqual = true;// ImageComparer.IsLikely(bm1, bm2);
+                //        AppendLogs($"Is Likely {item.IsBitMapEqual}");
+                //    }
+                //}
                 if (item.Active == true)
                 {
                     results.Add(item);
@@ -258,30 +259,51 @@ namespace AutoCursorMoveStep
             return results;
         }
 
-        private Bitmap CaptureScreen(Rectangle captureArea)
+
+
+        private static Bitmap _croppedBitmap;
+        private static Bitmap _bmSmall;
+        private void CaptureScreen(Rectangle captureArea)
         {
-            Bitmap result;
+            //Bitmap result;
             using (Bitmap bitmap = new Bitmap(Screen.PrimaryScreen.Bounds.Width, Screen.PrimaryScreen.Bounds.Height))
             {
                 using (Graphics graphics = Graphics.FromImage(bitmap))
                 {
                     graphics.CopyFromScreen(Point.Empty, Point.Empty, bitmap.Size);
                 }
-                Bitmap croppedBitmap = bitmap.Clone(captureArea, bitmap.PixelFormat);
-                result = croppedBitmap;
-                //bitmap.Dispose();
-                //croppedBitmap.Dispose();
+                //Bitmap croppedBitmap = bitmap.Clone(captureArea, bitmap.PixelFormat);
+                //result = croppedBitmap; 
+                _croppedBitmap = CropBitmap(bitmap, captureArea);
             }
-            return result;
+            //return result;
         }
-
-        private void btnFetchImageManual_Click(object sender, EventArgs e)
+        private Bitmap CropBitmap(Bitmap source, Rectangle cropArea)
         {
-            gvDatas = ReadGV();
+            // Check if the crop area is within the bounds of the source bitmap
+            if (!cropArea.IntersectsWith(GetBitmapBounds(source)))
+            {
+                throw new ArgumentException("Crop area is outside the bounds of the source bitmap");
+            }
+
+            // Create a new bitmap with the same dimensions as the crop area
+            Bitmap croppedBitmap = new Bitmap(cropArea.Width, cropArea.Height);
+
+            // Use Graphics to draw the cropped portion of the source bitmap onto the new bitmap
+            using (Graphics g = Graphics.FromImage(croppedBitmap))
+            {
+                g.DrawImage(source, new Rectangle(0, 0, cropArea.Width, cropArea.Height), cropArea, GraphicsUnit.Pixel);
+            }
+
+            // Return the cropped bitmap
+            return croppedBitmap;
         }
-
-
-
+        private Rectangle GetBitmapBounds(Bitmap bitmap)
+        {
+            Rectangle bounds = Rectangle.Empty;
+            bounds = new Rectangle(0, 0, bitmap.Width, bitmap.Height);
+            return bounds;
+        }
         private void AddRow()
         {
             if (gvAutoList == null)
@@ -303,6 +325,7 @@ namespace AutoCursorMoveStep
             AppendLogs($"Click Start");
             if (IsStart == false)
             {
+                ReadGV();
                 var isRoundCorrect = int.TryParse(txtRoundNumber.Text, out int roundInt);
                 if (isRoundCorrect == false || roundInt < 1)
                 {
@@ -311,11 +334,19 @@ namespace AutoCursorMoveStep
                 }
                 round = roundInt;
 
+                Application.DoEvents();
                 IsStart = true;
-                MouseClickAutoTimmer();
+                cursorTimer = new Timer();
+                cursorTimer.Interval = 100;
+                cursorTimer.Tick += (sender, e) => MouseClickAutoTimmer();
+                cursorTimer.Start();
             }
         }
 
+        private void btnStop_Click(object sender, EventArgs e)
+        {
+            AppendLogs($"Click Stop");
+        }
 
         #region Save data
         private SQLiteConnection connection;
@@ -427,82 +458,199 @@ namespace AutoCursorMoveStep
 
         #endregion
 
-        private void btnStop_Click(object sender, EventArgs e)
-        {
-
-            AppendLogs($"Click Stop");
-        }
 
 
 
         #region Teleport Cursor Click
+        private static Timer cursorTimer = new Timer();
+        private int timerMilisecCountForStepProcess = 0;
 
-        //private static List<ItemAuto> gvDatas;
         private static int round { get; set; } = 0;
-        private static int index = 0;
+        private static int processNumber = 0;
         public static bool IsStart = false;
-
-
-
+        private static int roundRecheck = 0;
 
         private void MouseClickAutoTimmer()
         {
-            //Application.DoEvents();
+            timerMilisecCountForStepProcess += cursorTimer.Interval;
+
             //System.Threading.Thread.Sleep(timmerClickAuto.Interval);
             try
             {
-                while (round > 0)
+                if (round <= 0)
                 {
-                    ReadGV();
-                    AppendLogs($"Round = {round} : index = {index.ToString()} : IsStop = {MoveCursorService.isStop.ToString()}");
-                    if (index < gvDatas.Count)
+                    cursorTimer.Stop();
+                    AppendLogs($"Round end ");
+                    MessageBox.Show($"Round end ");
+                    round = 0;
+                    IsStart = false;
+                    processNumber = 0;
+                    roundRecheck = 0;
+                    timerMilisecCountForStepProcess = 0;
+                    return;
+                }
+
+                // AppendLogs($"Round = {round} : Process No = {processNumber} : IsStop = {MoveCursorService.isStop}");
+                if (processNumber >= gvDatas.Count)
+                {
+                    processNumber = 0;
+                    round--;
+                    timerMilisecCountForStepProcess = 0;
+                    roundRecheck = 0;
+                    return;
+                }
+
+                var isNotActive = (gvDatas[processNumber].Active == true);
+                if (!isNotActive)
+                {
+                    cursorTimer.Stop();
+                    AppendLogs($"Found unactive job Process No = {processNumber} ");
+                    MessageBox.Show($"Found unactive job Process No = {processNumber} ");
+                    round = 0;
+                    IsStart = false;
+                    processNumber = 0;
+                    roundRecheck = 0;
+                    timerMilisecCountForStepProcess = 0;
+                    return;
+                }
+
+                if (timerMilisecCountForStepProcess < convertSecondToMilisecond(gvDatas[processNumber].Interval.Value))
+                {
+                    //Continue waiting
+                    return;
+                }
+
+                if (roundRecheck > 0)
+                {
+                    //Continue waiting round recheck
+                    return;
+                }
+
+                roundRecheck = 1;
+            RECHECKEQUAL:
+                if (roundRecheck > 5)
+                {
+                    cursorTimer.Stop();
+                    AppendLogs($"Unable to check image same = {processNumber} ");
+                    MessageBox.Show($"Unable to check image same = {processNumber} ");
+                    round = 0;
+                    IsStart = false;
+                    processNumber = 0;
+                    roundRecheck = 0;
+                    timerMilisecCountForStepProcess = 0;
+                    return;
+                }
+
+                var isEqual = SearchEqualImageInScreen(processNumber);// gvDatas[processNumber].IsBitMapEqual;// true;// 
+                AppendLogs($"Round = {round} : Process No = {processNumber} : Is Equal :X {isEqual}");
+                if (isEqual == false)
+                {
+                    AppendLogs($"Round = {round} : Process No = {processNumber} : Start wait {roundRecheck}");
+
+                    var secWaitRecheck = GenerateRandomMillisecond(4, 6);
+                    System.Threading.Thread.Sleep(secWaitRecheck);
+
+                    AppendLogs($"Round = {round} : Process No = {processNumber} : End wait {roundRecheck} | wait {secWaitRecheck}");
+
+                    roundRecheck++;
+                    goto RECHECKEQUAL;
+                }
+                var mousePoint = GetRandomPointInRectangle(gvDatas[processNumber].rectangle.Value);
+                Cursor.Position = mousePoint;
+                AppendLogs($"Mouse point :X {mousePoint.X} , Y {mousePoint.Y}");
+                LeftMouseClick();
+
+                processNumber++;
+                roundRecheck = 0;
+                timerMilisecCountForStepProcess = 0;
+            }
+            catch (Exception ex)
+            {
+                cursorTimer.Stop();
+                AppendLogs($"ex {ex.Message}");
+                MessageBox.Show($"ex {ex.Message}");
+            }
+
+        }
+
+        private bool SearchEqualImageInScreen(int processNumber)
+        {
+            Rectangle captureAreaForSearch = new Rectangle((int)0, (int)0, (int)Screen.PrimaryScreen.Bounds.Width, (int)Screen.PrimaryScreen.Bounds.Height);
+            CaptureScreen(captureAreaForSearch);
+            var screenShort = _croppedBitmap;
+
+            _bmSmall = (Bitmap)gvAutoList.Rows[processNumber].Cells[(int)GVHeaderPosition.ReCheck].Value;
+
+            var rectWidth = gvDatas[processNumber].BotRightX - gvDatas[processNumber].TopLeftX;
+            var rectHeight = gvDatas[processNumber].BotRightY - gvDatas[processNumber].TopLeftY;
+            Point positionResult = FindBitmapSmallPosition(screenShort, _bmSmall);
+            
+            if (positionResult.X != -1 && positionResult.Y != -1)
+            {
+                AppendLogs("bitmapSmall is found at position (" + positionResult.X + ", " + positionResult.Y + ")");
+
+                Rectangle captureAreaFound = new Rectangle((int)positionResult.X, (int)positionResult.Y, (int)rectWidth, (int)rectHeight);
+                CaptureScreen(captureAreaFound);
+                gvAutoList.Rows[processNumber].Cells[(int)GVHeaderPosition.Position].Value = _croppedBitmap;
+                return true;
+            }
+            else
+            {
+                Rectangle captureAreaFound = new Rectangle((int)gvDatas[processNumber].TopLeftX, (int)gvDatas[processNumber].TopLeftY, (int)rectWidth, (int)rectHeight);
+                CaptureScreen(captureAreaFound);
+                gvAutoList.Rows[processNumber].Cells[(int)GVHeaderPosition.Position].Value = _croppedBitmap;
+
+                AppendLogs("bitmapSmall is not found in bitmapBig");
+                return false;
+            }
+        }
+
+        public static Point FindBitmapSmallPosition(Bitmap bitmapBig, Bitmap bitmapSmall)
+        {
+            // Check if bitmapSmall is smaller than bitmapBig
+            if (bitmapSmall.Width > bitmapBig.Width || bitmapSmall.Height > bitmapBig.Height)
+            {
+                throw new ArgumentException("bitmapSmall must be smaller than bitmapBig");
+            }
+
+            // Iterate through each pixel of bitmapBig
+            for (int x = 0; x < bitmapBig.Width - bitmapSmall.Width; x++)
+            {
+                for (int y = 0; y < bitmapBig.Height - bitmapSmall.Height; y++)
+                {
+                    // Check if the current pixel in bitmapBig matches the corresponding pixel in bitmapSmall
+                    bool matches = true;
+                    for (int i = 0; i < bitmapSmall.Width; i++)
                     {
-                        var isAbleToRun = (gvDatas[index].Active == true);
-                        if (isAbleToRun)
+                        for (int j = 0; j < bitmapSmall.Height; j++)
                         {
-                            int roundRecheck = 0;
-                        RECHECKEQUAL:
-                            if (roundRecheck > 3)
-                            {
-                                round = 0; break;
-                            }
-                            var isEqual = gvDatas[index].IsBitMapEqual;// true;// 
-                            AppendLogs($"Round = {round} : index = {index.ToString()} : Is Equal :X {isEqual.ToString()}");
-                            if (isEqual == false)
-                            {
-                                AppendLogs($"Round = {round} : index = {index.ToString()} : Start wait {roundRecheck}");
+                            Color pixelBig = bitmapBig.GetPixel(x + i, y + j);
+                            Color pixelSmall = bitmapSmall.GetPixel(i, j);
 
-                                System.Threading.Thread.Sleep(GenerateRandomMillisecond(3, 5));
-                                //Task.Delay(convertSecondToMilisecond(3)).Wait();
-
-                                AppendLogs($"Round = {round} : index = {index.ToString()} : End wait {roundRecheck}");
-                                ReadGV();
-                                roundRecheck++;
-                                goto RECHECKEQUAL;
+                            if (pixelBig != pixelSmall)
+                            {
+                                matches = false;
+                                break;
                             }
-                            var mousePoint = GetRandomPointInRectangle(gvDatas[index].rectangle.Value);
-                            Cursor.Position = mousePoint;
-                            AppendLogs($"Mouse point :X {mousePoint.X} , Y {mousePoint.Y}");
-                            System.Threading.Thread.Sleep(convertSecondToMilisecond(gvDatas[index].Interval.Value));
-                            LeftMouseClick();
                         }
-                        index++;
+
+                        if (!matches)
+                        {
+                            break;
+                        }
                     }
-                    else
+
+                    // If all pixels match, then bitmapSmall is found at the current position
+                    if (matches)
                     {
-                        index = 0;
-                        round--;
+                        return new Point(x, y);
                     }
                 }
             }
-            finally
-            {
-                IsStart = false;
-            }
-            //  timmerClickAuto.Stop(); 
-            AppendLogs($"Done job");
-            MessageBox.Show($"Done job");
+            // If bitmapSmall is not found, return (-1, -1)
+            return new Point(-1, -1);
         }
+
         private static int convertSecondToMilisecond(decimal seconds)
         {
             // TimeSpan.FromSeconds(seconds);

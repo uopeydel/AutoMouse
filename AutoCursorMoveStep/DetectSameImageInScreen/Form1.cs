@@ -73,6 +73,11 @@ namespace DetectSameImageInScreen
 
         private void btnSearch_Click(object sender, EventArgs e)
         {
+            SearchEqualImageInScreen();
+        }
+
+        private bool SearchEqualImageInScreen()
+        {
             Rectangle captureAreaForSearch = new Rectangle((int)0, (int)0, (int)Screen.PrimaryScreen.Bounds.Width, (int)Screen.PrimaryScreen.Bounds.Height);
             CaptureScreen(captureAreaForSearch);
             pbScreenShort.Image = _croppedBitmap;
@@ -100,11 +105,12 @@ namespace DetectSameImageInScreen
                 pbFound.Refresh();
                 //_croppedBitmap.Dispose();
                 //_croppedBitmap = null;
+                return true;
             }
             else
             {
                 MessageBox.Show("bitmapSmall is not found in bitmapBig");
-
+                return false;
             }
         }
 
