@@ -147,7 +147,7 @@ namespace AutoCursorMoveStep
                     gvAutoList.Rows[e.RowIndex].Cells[(int)GVHeaderPosition.ReCheck].Value = _croppedBitmap;
 
 
-                    var imageFilePath = GetImagePath($"{e.RowIndex}.png");
+                    var imageFilePath = GetImagePath($"{e.RowIndex}.png"); 
                     _croppedBitmap.Save(imageFilePath, ImageFormat.Png);
 
                 }
@@ -505,13 +505,13 @@ namespace AutoCursorMoveStep
 
 
         #region Teleport Cursor Click
-        private static Timer cursorTimer = new Timer();
+        private Timer cursorTimer = new Timer();
         private int timerMilisecCountForStepProcess = 0;
         private int msWaitRecheck = 0;
-        private static int round { get; set; } = 0;
-        private static int processNumber = 0;
-        public static bool IsStart = false;
-        private static int roundRecheck = 0;
+        private int round { get; set; } = 0;
+        private int processNumber = 0;
+        public bool IsStart = false;
+        private int roundRecheck = 0;
 
         private void MouseClickAutoTimmer()
         {
@@ -550,28 +550,9 @@ namespace AutoCursorMoveStep
                 }
 
                 int limitRoundCheck = 10;
-                if (roundRecheck > 0 && roundRecheck <= limitRoundCheck)
-                {
-                    if (timerMilisecCountForStepProcess > msWaitRecheck)
-                    {
-                        goto RECHECKEQUAL;
-                    }
 
-                    //Continue waiting round recheck
-                    return;
-                }
-
-
-                roundRecheck = 1;
-            RECHECKEQUAL:
                 if (roundRecheck > limitRoundCheck)
                 {
-                    //if (processNumber == 2)
-                    //{
-                    //    System.Threading.Thread.Sleep(3000);
-                    //    limitRoundCheck = 10;
-                    //    goto RECHECKEQUAL;
-                    //}
                     cursorTimer.Stop();
                     AppendLogs($"Unable to check image same = {processNumber} ");
                     MessageBox.Show($"Unable to check image same = {processNumber} ");
@@ -583,15 +564,24 @@ namespace AutoCursorMoveStep
                     return;
                 }
 
+                if ((roundRecheck > 0) 
+                    && (roundRecheck <= limitRoundCheck) 
+                    && (timerMilisecCountForStepProcess <= msWaitRecheck))
+                {
+                    //Continue waiting round recheck
+                    return;
+                }
+
+
                 var isEqual = SearchEqualImageInScreen(processNumber);// gvDatas[processNumber].IsBitMapEqual;// true;// 
                 AppendLogs($"Round = {round} : Process No = {processNumber} : Is Equal :X {isEqual}");
                 if (isEqual == false)
                 {
+                    roundRecheck++;
                     msWaitRecheck = GenerateRandomMillisecond(4, 6) + timerMilisecCountForStepProcess;
 
                     AppendLogs($"Round = {round} : Process No = {processNumber} : WaitRound {roundRecheck} | Wait Time {msWaitRecheck}");
 
-                    roundRecheck++;
                     return;
                 }
                 var mousePoint = GetRandomPointInRectangle(gvDatas[processNumber].rectangle.Value);
