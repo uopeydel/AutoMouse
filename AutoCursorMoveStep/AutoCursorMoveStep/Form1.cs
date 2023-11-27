@@ -358,6 +358,7 @@ namespace AutoCursorMoveStep
                 cursorTimer.Interval = 100;
                 cursorTimer.Tick += (sender, e) => MouseClickAutoTimmer();
                 cursorTimer.Start();
+                this.WindowState = FormWindowState.Minimized;
             }
         }
 
@@ -370,8 +371,11 @@ namespace AutoCursorMoveStep
         {
             cursorTimer.Stop();
             AppendLogs(Message);
-            MessageBox.Show(Message);
-
+            var res = MessageBox.Show(Message, "Info", MessageBoxButtons.OK);
+            if (res == DialogResult.OK)
+            {
+                this.WindowState = FormWindowState.Normal;
+            }
             SystemSounds.Hand.Play();
             SystemSounds.Asterisk.Play();
             SystemSounds.Exclamation.Play();
