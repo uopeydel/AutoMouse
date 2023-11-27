@@ -612,7 +612,7 @@ VALUES (@TopLeftX, @TopLeftY, @BotRightX, @BotRightY, @Interval, @Active , @Allo
                 {
                     roundRecheck++;
                     msWaitRecheck = GenerateRandomMillisecond(4, 6) + timerMilisecCountForStepProcess;
-
+                    MouseEventWheelDown();
                     AppendLogs($"Round = {round} : Process No = {processNumber} : WaitRound {roundRecheck} | Wait Time {msWaitRecheck}");
                     return;
                 }
