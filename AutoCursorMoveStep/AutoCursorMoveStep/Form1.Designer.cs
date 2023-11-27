@@ -47,10 +47,11 @@
             btnLoad = new Button();
             btnTruncate = new Button();
             lbLog = new ListBox();
-            txtRoundNumber = new TextBox();
             label2 = new Label();
             chkHookSpacePosition = new CheckBox();
+            numRoundNumber = new NumericUpDown();
             ((System.ComponentModel.ISupportInitialize)gvAutoList).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)numRoundNumber).BeginInit();
             SuspendLayout();
             // 
             // gvAutoList
@@ -212,15 +213,6 @@
             lbLog.Size = new Size(240, 651);
             lbLog.TabIndex = 12;
             // 
-            // txtRoundNumber
-            // 
-            txtRoundNumber.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            txtRoundNumber.Location = new Point(208, 624);
-            txtRoundNumber.Name = "txtRoundNumber";
-            txtRoundNumber.Size = new Size(100, 23);
-            txtRoundNumber.TabIndex = 13;
-            txtRoundNumber.Text = "10";
-            // 
             // label2
             // 
             label2.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
@@ -242,14 +234,23 @@
             chkHookSpacePosition.UseVisualStyleBackColor = true;
             chkHookSpacePosition.MouseUp += chkHookSpacePosition_MouseUp;
             // 
+            // numRoundNumber
+            // 
+            numRoundNumber.Location = new Point(198, 620);
+            numRoundNumber.Maximum = new decimal(new int[] { 1000, 0, 0, 0 });
+            numRoundNumber.Name = "numRoundNumber";
+            numRoundNumber.Size = new Size(120, 23);
+            numRoundNumber.TabIndex = 16;
+            numRoundNumber.Value = new decimal(new int[] { 10, 0, 0, 0 });
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1298, 651);
+            Controls.Add(numRoundNumber);
             Controls.Add(chkHookSpacePosition);
             Controls.Add(label2);
-            Controls.Add(txtRoundNumber);
             Controls.Add(lbLog);
             Controls.Add(btnTruncate);
             Controls.Add(btnLoad);
@@ -263,8 +264,8 @@
             Name = "Form1";
             ShowIcon = false;
             Text = "Auto cursor move step";
-            TopMost = true;
             ((System.ComponentModel.ISupportInitialize)gvAutoList).EndInit();
+            ((System.ComponentModel.ISupportInitialize)numRoundNumber).EndInit();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -289,9 +290,9 @@
         private DataGridViewButtonColumn btnFetchImageCheck;
         private DataGridViewTextBoxColumn IsEqualFetch;
         private DataGridViewButtonColumn btnCheckEqual;
-        private TextBox txtRoundNumber;
         private Label label2;
         public ListBox lbLog;
         private CheckBox chkHookSpacePosition;
+        private NumericUpDown numRoundNumber;
     }
 }

@@ -65,7 +65,7 @@ namespace AutoCursorMoveStep
                 if (vkCode == VK_S)
                 {
                     MoveCursorService.isStop = true;
-                    btnStop_Click(null,null);
+                    btnStop_Click(null, null);
                 }
 
                 if (vkCode == VK_A)
@@ -204,6 +204,18 @@ namespace AutoCursorMoveStep
             Equal = 9,
             IsEqual = 10
         }
+
+        private decimal GetPositionGridview(int rowIndex, int cellIndex)
+        {
+            var positionTxtInput = gvAutoList.Rows[rowIndex].Cells[cellIndex].Value?.ToString();
+            var isParseSuccess = decimal.TryParse(positionTxtInput, out decimal positionPointResult);
+
+            if (isParseSuccess == false)
+            {
+                gvAutoList.Rows[rowIndex].Cells[cellIndex].Value = positionPointResult;
+            }
+            return positionPointResult;
+        }
         private List<ItemAuto> ReadGV()
         {
             var results = new List<ItemAuto>();
@@ -217,30 +229,15 @@ namespace AutoCursorMoveStep
                 var item = new ItemAuto();
 
 
-                var TopLeftXTxt = gvAutoList.Rows[i].Cells[(int)GVHeaderPosition.TopLeftX].Value?.ToString();
-                decimal.TryParse(TopLeftXTxt, out decimal TopLeftX);
-                item.TopLeftX = TopLeftX;
+                item.TopLeftX = GetPositionGridview(i, (int)GVHeaderPosition.TopLeftX);
 
+                item.TopLeftY = GetPositionGridview(i, (int)GVHeaderPosition.TopLeftY);
 
-                var TopLeftYTxt = gvAutoList.Rows[i].Cells[(int)GVHeaderPosition.TopLeftY].Value?.ToString();
-                decimal.TryParse(TopLeftYTxt, out decimal TopLeftY);
-                item.TopLeftY = TopLeftY;
+                item.BotRightX = GetPositionGridview(i, (int)GVHeaderPosition.BotRightX);
 
+                item.BotRightY = GetPositionGridview(i, (int)GVHeaderPosition.BotRightY);
 
-                var BotRightXTxt = gvAutoList.Rows[i].Cells[(int)GVHeaderPosition.BotRightX].Value?.ToString();
-                decimal.TryParse(BotRightXTxt, out decimal BotRightX);
-                item.BotRightX = BotRightX;
-
-
-                var BotRightYTxt = gvAutoList.Rows[i].Cells[(int)GVHeaderPosition.BotRightY].Value?.ToString();
-                decimal.TryParse(BotRightYTxt, out decimal BotRightY);
-                item.BotRightY = BotRightY;
-
-
-
-                var IntervalTxt = gvAutoList.Rows[i].Cells[(int)GVHeaderPosition.Interval].Value?.ToString();
-                decimal.TryParse(IntervalTxt, out decimal Interval);
-                item.Interval = Interval;
+                item.Interval = GetPositionGridview(i, (int)GVHeaderPosition.Interval);
 
 
 
@@ -346,10 +343,11 @@ namespace AutoCursorMoveStep
             if (IsStart == false)
             {
                 ReadGV();
-                var isRoundCorrect = int.TryParse(txtRoundNumber.Text, out int roundInt);
-                if (isRoundCorrect == false || roundInt < 1)
+
+                int roundInt = (int)numRoundNumber.Value;
+                if (roundInt < 1)
                 {
-                    AppendLogs($"Round incorrect {txtRoundNumber.Text}");
+                    AppendLogs($"Round incorrect {numRoundNumber.Value}");
                     return;
                 }
                 round = roundInt;
@@ -365,10 +363,19 @@ namespace AutoCursorMoveStep
 
         private void btnStop_Click(object sender, EventArgs e)
         {
-            AppendLogs($"Click Stop");
+            OnStopLoop($"Click Stop");
+        }
 
+        private void OnStopLoop(string Message)
+        {
             cursorTimer.Stop();
-           
+            AppendLogs(Message);
+            MessageBox.Show(Message);
+
+            SystemSounds.Hand.Play();
+            SystemSounds.Asterisk.Play();
+            SystemSounds.Exclamation.Play();
+
             round = 0;
             IsStart = false;
             processNumber = 0;
@@ -515,17 +522,7 @@ namespace AutoCursorMoveStep
             {
                 if (round <= 0)
                 {
-                    cursorTimer.Stop();
-                    SystemSounds.Hand.Play();
-                    SystemSounds.Asterisk.Play();
-                    SystemSounds.Exclamation.Play();
-                    AppendLogs($"Round end ");
-                    MessageBox.Show($"Round end ");
-                    round = 0;
-                    IsStart = false;
-                    processNumber = 0;
-                    roundRecheck = 0;
-                    timerMilisecCountForStepProcess = msWaitRecheck = 0;
+                    OnStopLoop($"Round end ");
                     return;
                 }
 
@@ -542,14 +539,7 @@ namespace AutoCursorMoveStep
                 var isNotActive = (gvDatas[processNumber].Active == true);
                 if (!isNotActive)
                 {
-                    cursorTimer.Stop();
-                    AppendLogs($"Found unactive job Process No = {processNumber} ");
-                    MessageBox.Show($"Found unactive job Process No = {processNumber} ");
-                    round = 0;
-                    IsStart = false;
-                    processNumber = 0;
-                    roundRecheck = 0;
-                    timerMilisecCountForStepProcess = msWaitRecheck = 0;
+                    OnStopLoop($"Found unactive job Process No = {processNumber} ");
                     return;
                 }
 
@@ -727,6 +717,7 @@ namespace AutoCursorMoveStep
 
             logs = DateTime.Now.ToString("HH:mm:sss | ") + logs;
             lbLog.Items.Add(logs);
+            lbLog.SelectedIndex = lbLog.Items.Count - 1;
         }
         #endregion
 
