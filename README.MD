@@ -6,14 +6,17 @@
     vso 2022
         https://visualstudio.microsoft.com/vs/
 
-# Noti
+# Note
 
 Work only main screen
 
 # How to use
 
-1 Key a space bar to show current point x,y of your mouse
-2 Key a value position in a grid view for a Rectangle
-3 Click start
-4 Wait until it run to end
-
+1. Check Hook Position By Spacebar to open feature key 'spacebar' to get x,y of your screen
+2. Key a space bar to show current point x,y of your mouse
+3. Add Row as you want
+4. Key a value position in a grid view for a Rectangle
+5. Click Fetch image to get 'Image Re-Check' for compare a real image button you want to click it auto
+6. Set round loop
+7. Click 'Start'
+8. Wait until it stop bu round loop or click 'Stop'
