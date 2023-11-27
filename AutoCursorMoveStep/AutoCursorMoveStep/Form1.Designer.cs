@@ -40,6 +40,7 @@
             btnFetchImageCheck = new DataGridViewButtonColumn();
             IsEqualFetch = new DataGridViewTextBoxColumn();
             btnCheckEqual = new DataGridViewButtonColumn();
+            cbAllowNotRecheck = new DataGridViewCheckBoxColumn();
             btnAddRow = new Button();
             btnStart = new Button();
             btnStop = new Button();
@@ -58,7 +59,7 @@
             // 
             gvAutoList.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
             gvAutoList.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            gvAutoList.Columns.AddRange(new DataGridViewColumn[] { imgPosition, txtTopLeftX, txtTopLeftY, txtBotRightX, txtBotRightY, txtInterval, chkActive, imgRecheck, btnFetchImageCheck, IsEqualFetch, btnCheckEqual });
+            gvAutoList.Columns.AddRange(new DataGridViewColumn[] { imgPosition, txtTopLeftX, txtTopLeftY, txtBotRightX, txtBotRightY, txtInterval, chkActive, imgRecheck, btnFetchImageCheck, IsEqualFetch, btnCheckEqual, cbAllowNotRecheck });
             gvAutoList.Location = new Point(20, 10);
             gvAutoList.Margin = new Padding(2);
             gvAutoList.Name = "gvAutoList";
@@ -134,6 +135,11 @@
             btnCheckEqual.Name = "btnCheckEqual";
             btnCheckEqual.Width = 70;
             // 
+            // cbAllowNotRecheck
+            // 
+            cbAllowNotRecheck.HeaderText = "Allow Not Recheck";
+            cbAllowNotRecheck.Name = "cbAllowNotRecheck";
+            // 
             // btnAddRow
             // 
             btnAddRow.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
@@ -149,7 +155,7 @@
             // btnStart
             // 
             btnStart.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            btnStart.Location = new Point(323, 620);
+            btnStart.Location = new Point(304, 622);
             btnStart.Margin = new Padding(2);
             btnStart.Name = "btnStart";
             btnStart.Size = new Size(75, 25);
@@ -161,7 +167,7 @@
             // btnStop
             // 
             btnStop.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            btnStop.Location = new Point(421, 620);
+            btnStop.Location = new Point(383, 624);
             btnStop.Margin = new Padding(2);
             btnStop.Name = "btnStop";
             btnStop.Size = new Size(75, 25);
@@ -173,7 +179,7 @@
             // btnSave
             // 
             btnSave.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            btnSave.Location = new Point(815, 624);
+            btnSave.Location = new Point(767, 621);
             btnSave.Name = "btnSave";
             btnSave.Size = new Size(75, 25);
             btnSave.TabIndex = 9;
@@ -184,7 +190,7 @@
             // btnLoad
             // 
             btnLoad.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            btnLoad.Location = new Point(896, 622);
+            btnLoad.Location = new Point(848, 619);
             btnLoad.Name = "btnLoad";
             btnLoad.Size = new Size(75, 25);
             btnLoad.TabIndex = 10;
@@ -195,7 +201,7 @@
             // btnTruncate
             // 
             btnTruncate.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            btnTruncate.Location = new Point(977, 622);
+            btnTruncate.Location = new Point(929, 619);
             btnTruncate.Name = "btnTruncate";
             btnTruncate.Size = new Size(75, 25);
             btnTruncate.TabIndex = 11;
@@ -205,19 +211,19 @@
             // 
             // lbLog
             // 
-            lbLog.Dock = DockStyle.Right;
+            lbLog.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             lbLog.FormattingEnabled = true;
             lbLog.ItemHeight = 15;
-            lbLog.Location = new Point(1058, 0);
+            lbLog.Location = new Point(1010, 0);
             lbLog.Name = "lbLog";
-            lbLog.Size = new Size(240, 651);
+            lbLog.Size = new Size(288, 649);
             lbLog.TabIndex = 12;
             // 
             // label2
             // 
             label2.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             label2.AutoSize = true;
-            label2.Location = new Point(114, 627);
+            label2.Location = new Point(95, 629);
             label2.Name = "label2";
             label2.Size = new Size(72, 15);
             label2.TabIndex = 14;
@@ -226,7 +232,7 @@
             // chkHookSpacePosition
             // 
             chkHookSpacePosition.AutoSize = true;
-            chkHookSpacePosition.Location = new Point(522, 623);
+            chkHookSpacePosition.Location = new Point(463, 626);
             chkHookSpacePosition.Name = "chkHookSpacePosition";
             chkHookSpacePosition.Size = new Size(168, 19);
             chkHookSpacePosition.TabIndex = 15;
@@ -236,7 +242,7 @@
             // 
             // numRoundNumber
             // 
-            numRoundNumber.Location = new Point(198, 620);
+            numRoundNumber.Location = new Point(179, 622);
             numRoundNumber.Maximum = new decimal(new int[] { 1000, 0, 0, 0 });
             numRoundNumber.Name = "numRoundNumber";
             numRoundNumber.Size = new Size(120, 23);
@@ -294,5 +300,6 @@
         public ListBox lbLog;
         private CheckBox chkHookSpacePosition;
         private NumericUpDown numRoundNumber;
+        private DataGridViewCheckBoxColumn cbAllowNotRecheck;
     }
 }

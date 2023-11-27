@@ -147,8 +147,14 @@ namespace AutoCursorMoveStep
                     gvAutoList.Rows[e.RowIndex].Cells[(int)GVHeaderPosition.ReCheck].Value = _croppedBitmap;
 
 
-                    var imageFilePath = GetImagePath($"{e.RowIndex}.png"); 
-                    _croppedBitmap.Save(imageFilePath, ImageFormat.Png);
+                    var imageFilePath = GetImagePath($"{e.RowIndex}.png");
+                    //_croppedBitmap.Save(imageFilePath, ImageFormat.Png);
+                    //////var image = new Bitmap(width, height);
+                    using (MemoryStream ms = new MemoryStream())
+                    {
+                        //error will throw from here
+                        _croppedBitmap.Save(ms, ImageFormat.Png);
+                    }
 
                 }
 
@@ -202,7 +208,8 @@ namespace AutoCursorMoveStep
             ReCheck = 7,
             Fetch = 8,
             Equal = 9,
-            IsEqual = 10
+            IsEqual = 10,
+            AllowNotRecheckImage = 11
         }
 
         private decimal GetPositionGridview(int rowIndex, int cellIndex)
@@ -244,6 +251,11 @@ namespace AutoCursorMoveStep
                 var boolTxt = gvAutoList.Rows[i].Cells[(int)GVHeaderPosition.Active].Value?.ToString();
                 bool.TryParse(boolTxt, out bool Active);
                 item.Active = Active;
+
+                var boolAllowNotRecheckImageTxt = gvAutoList.Rows[i].Cells[(int)GVHeaderPosition.AllowNotRecheckImage].Value?.ToString();
+                bool.TryParse(boolAllowNotRecheckImageTxt, out bool AllowNotRecheckImage);
+                item.AllowNotRecheckImage = AllowNotRecheckImage;
+
 
                 var wid = (int)(item.BotRightX - item.TopLeftX);
                 var hei = (int)(item.BotRightY - item.TopLeftY);
@@ -406,14 +418,17 @@ namespace AutoCursorMoveStep
             }
 
             // Create a new table in the SQLite database
-            string createTableQuery = "CREATE TABLE IF NOT EXISTS ItemAuto (TopLeftX DECIMAL(18,2), TopLeftY DECIMAL(18,2), BotRightX DECIMAL(18,2), BotRightY DECIMAL(18,2), Interval DECIMAL(18,2), Active INTEGER)";
+            string createTableQuery = @"CREATE TABLE IF NOT EXISTS ItemAuto 
+(TopLeftX DECIMAL(18,2), TopLeftY DECIMAL(18,2), BotRightX DECIMAL(18,2), BotRightY DECIMAL(18,2), Interval DECIMAL(18,2), Active INTEGER , AllowNotRecheckImage INTEGER)";
             using (SQLiteCommand command = new SQLiteCommand(createTableQuery, connection))
             {
                 command.ExecuteNonQuery();
             }
             ReadGV();
             // Insert some data into the SQLite database
-            string insertDataQuery = "INSERT INTO ItemAuto (TopLeftX, TopLeftY, BotRightX, BotRightY, Interval, Active) VALUES (@TopLeftX, @TopLeftY, @BotRightX, @BotRightY, @Interval, @Active)";
+            string insertDataQuery = @"
+INSERT INTO ItemAuto (TopLeftX, TopLeftY, BotRightX, BotRightY, Interval, Active , AllowNotRecheckImage) 
+VALUES (@TopLeftX, @TopLeftY, @BotRightX, @BotRightY, @Interval, @Active , @AllowNotRecheckImage)";
             using (SQLiteCommand command = new SQLiteCommand(insertDataQuery, connection))
             {
                 gvDatas.ForEach(f =>
@@ -424,6 +439,8 @@ namespace AutoCursorMoveStep
                     command.Parameters.AddWithValue("@BotRightY", f.BotRightY);
                     command.Parameters.AddWithValue("@Interval", f.Interval);
                     command.Parameters.AddWithValue("@Active", f.Active == true ? "1" : "0");
+                    command.Parameters.AddWithValue("@AllowNotRecheckImage", f.AllowNotRecheckImage == true ? "1" : "0");
+
                     command.ExecuteNonQuery();
                 });
 
@@ -473,12 +490,15 @@ namespace AutoCursorMoveStep
                     var dtActive = row[i].Field<long>("Active");
                     gvAutoList.Rows[i].Cells[(int)GVHeaderPosition.Active].Value = dtActive == 1 ? true : false;
 
+                    var dtAllowNotRecheckImage = row[i].Field<long>("AllowNotRecheckImage");
+                    gvAutoList.Rows[i].Cells[(int)GVHeaderPosition.AllowNotRecheckImage].Value = dtAllowNotRecheckImage == 1 ? true : false;
 
                     var imageFilePath = GetImagePath($"{i}.png");
                     if (File.Exists(imageFilePath))
                     {
                         Image imageFile = Image.FromFile(imageFilePath);
-                        gvAutoList.Rows[i].Cells[(int)GVHeaderPosition.ReCheck].Value = imageFile;
+                        gvAutoList.Rows[i].Cells[(int)GVHeaderPosition.ReCheck].Value = (Bitmap)imageFile;
+                        imageFile = null;
                     }
                 }
             }
@@ -516,6 +536,7 @@ namespace AutoCursorMoveStep
         private int processNumber = 0;
         public bool IsStart = false;
         private int roundRecheck = 0;
+        private Rectangle captureAreaFound ;
 
         private void MouseClickAutoTimmer()
         {
@@ -568,27 +589,31 @@ namespace AutoCursorMoveStep
                     return;
                 }
 
-                if ((roundRecheck > 0) 
-                    && (roundRecheck <= limitRoundCheck) 
+                if ((roundRecheck > 0)
+                    && (roundRecheck <= limitRoundCheck)
                     && (timerMilisecCountForStepProcess <= msWaitRecheck))
                 {
                     //Continue waiting round recheck
                     return;
                 }
 
+                Point mousePoint;
 
                 var isEqual = SearchEqualImageInScreen(processNumber);// gvDatas[processNumber].IsBitMapEqual;// true;// 
                 AppendLogs($"Round = {round} : Process No = {processNumber} : Is Equal :X {isEqual}");
-                if (isEqual == false)
-                {
+                if (isEqual == false && gvDatas[processNumber].AllowNotRecheckImage == false)
+                {  
                     roundRecheck++;
                     msWaitRecheck = GenerateRandomMillisecond(4, 6) + timerMilisecCountForStepProcess;
 
                     AppendLogs($"Round = {round} : Process No = {processNumber} : WaitRound {roundRecheck} | Wait Time {msWaitRecheck}");
-
                     return;
                 }
-                var mousePoint = GetRandomPointInRectangle(gvDatas[processNumber].rectangle.Value);
+                mousePoint = GetRandomPointInRectangle(gvDatas[processNumber].rectangle.Value);
+                if (isEqual == true)
+                {
+                    mousePoint = GetRandomPointInRectangle(captureAreaFound);
+                }
                 Cursor.Position = mousePoint;
                 AppendLogs($"Mouse point :X {mousePoint.X} , Y {mousePoint.Y}");
                 LeftMouseClick();
@@ -607,7 +632,7 @@ namespace AutoCursorMoveStep
         }
 
         private bool SearchEqualImageInScreen(int processNumber)
-        {
+        { 
             Rectangle captureAreaForSearch = new Rectangle((int)0, (int)0, (int)Screen.PrimaryScreen.Bounds.Width, (int)Screen.PrimaryScreen.Bounds.Height);
             CaptureScreen(captureAreaForSearch);
             var screenShort = _croppedBitmap;
@@ -616,20 +641,20 @@ namespace AutoCursorMoveStep
 
             var rectWidth = gvDatas[processNumber].BotRightX - gvDatas[processNumber].TopLeftX;
             var rectHeight = gvDatas[processNumber].BotRightY - gvDatas[processNumber].TopLeftY;
-            Point positionResult = FindBitmapSmallPosition(screenShort, _bmSmall);
+            Point positionResult = FindBitmapSmallPosition(screenShort, _bmSmall); //--**
 
             if (positionResult.X != -1 && positionResult.Y != -1)
             {
                 AppendLogs("bitmapSmall is found at position (" + positionResult.X + ", " + positionResult.Y + ")");
 
-                Rectangle captureAreaFound = new Rectangle((int)positionResult.X, (int)positionResult.Y, (int)rectWidth, (int)rectHeight);
+                captureAreaFound = new Rectangle((int)positionResult.X, (int)positionResult.Y, (int)rectWidth, (int)rectHeight);//--**
                 CaptureScreen(captureAreaFound);
                 gvAutoList.Rows[processNumber].Cells[(int)GVHeaderPosition.Position].Value = _croppedBitmap;
                 return true;
             }
             else
             {
-                Rectangle captureAreaFound = new Rectangle((int)gvDatas[processNumber].TopLeftX, (int)gvDatas[processNumber].TopLeftY, (int)rectWidth, (int)rectHeight);
+                captureAreaFound = new Rectangle((int)gvDatas[processNumber].TopLeftX, (int)gvDatas[processNumber].TopLeftY, (int)rectWidth, (int)rectHeight);
                 CaptureScreen(captureAreaFound);
                 gvAutoList.Rows[processNumber].Cells[(int)GVHeaderPosition.Position].Value = _croppedBitmap;
                 SystemSounds.Question.Play();

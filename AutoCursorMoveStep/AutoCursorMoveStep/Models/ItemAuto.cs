@@ -18,7 +18,7 @@ namespace AutoCursorMoveStep.Models
 
 
 
-
+        public bool? AllowNotRecheckImage { get; set; }
         public Rectangle? rectangle { get; set; }
         public Bitmap PositionBitMap { get; set; }
         public Bitmap RecheckBitMap { get; set; }
