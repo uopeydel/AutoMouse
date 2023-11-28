@@ -47,12 +47,12 @@
             btnStop = new Button();
             btnSave = new Button();
             btnLoad = new Button();
-            btnTruncate = new Button();
             lbLog = new ListBox();
             label2 = new Label();
             chkHookSpacePosition = new CheckBox();
             numRoundNumber = new NumericUpDown();
             nRowInsert = new NumericUpDown();
+            cbSaveType = new ComboBox();
             ((System.ComponentModel.ISupportInitialize)gvAutoList).BeginInit();
             ((System.ComponentModel.ISupportInitialize)numRoundNumber).BeginInit();
             ((System.ComponentModel.ISupportInitialize)nRowInsert).BeginInit();
@@ -195,7 +195,7 @@
             btnSave.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             btnSave.Location = new Point(618, 651);
             btnSave.Name = "btnSave";
-            btnSave.Size = new Size(75, 25);
+            btnSave.Size = new Size(43, 25);
             btnSave.TabIndex = 9;
             btnSave.Text = "Save";
             btnSave.UseVisualStyleBackColor = true;
@@ -204,24 +204,13 @@
             // btnLoad
             // 
             btnLoad.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            btnLoad.Location = new Point(699, 651);
+            btnLoad.Location = new Point(667, 651);
             btnLoad.Name = "btnLoad";
-            btnLoad.Size = new Size(75, 25);
+            btnLoad.Size = new Size(48, 25);
             btnLoad.TabIndex = 10;
             btnLoad.Text = "Load";
             btnLoad.UseVisualStyleBackColor = true;
             btnLoad.Click += btnLoad_Click;
-            // 
-            // btnTruncate
-            // 
-            btnTruncate.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            btnTruncate.Location = new Point(780, 651);
-            btnTruncate.Name = "btnTruncate";
-            btnTruncate.Size = new Size(75, 25);
-            btnTruncate.TabIndex = 11;
-            btnTruncate.Text = "Clear";
-            btnTruncate.UseVisualStyleBackColor = true;
-            btnTruncate.Click += btnTruncate_Click;
             // 
             // lbLog
             // 
@@ -230,7 +219,7 @@
             lbLog.ItemHeight = 15;
             lbLog.Location = new Point(861, 0);
             lbLog.Name = "lbLog";
-            lbLog.Size = new Size(266, 679);
+            lbLog.Size = new Size(239, 679);
             lbLog.TabIndex = 12;
             // 
             // label2
@@ -274,17 +263,27 @@
             nRowInsert.TabIndex = 17;
             nRowInsert.Value = new decimal(new int[] { 1, 0, 0, int.MinValue });
             // 
+            // cbSaveType
+            // 
+            cbSaveType.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            cbSaveType.FormattingEnabled = true;
+            cbSaveType.Items.AddRange(new object[] { "sqllite sandbox 1", "sqllite sandbox 2", "json sandbox 1", "json sandbox 2" });
+            cbSaveType.Location = new Point(721, 653);
+            cbSaveType.Name = "cbSaveType";
+            cbSaveType.Size = new Size(134, 23);
+            cbSaveType.TabIndex = 18;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1127, 692);
+            ClientSize = new Size(1100, 692);
+            Controls.Add(cbSaveType);
             Controls.Add(nRowInsert);
             Controls.Add(numRoundNumber);
             Controls.Add(chkHookSpacePosition);
             Controls.Add(label2);
             Controls.Add(lbLog);
-            Controls.Add(btnTruncate);
             Controls.Add(btnLoad);
             Controls.Add(btnSave);
             Controls.Add(btnStop);
@@ -296,6 +295,7 @@
             Name = "Form1";
             ShowIcon = false;
             Text = "Auto cursor move step";
+            Load += Form1_Load;
             ((System.ComponentModel.ISupportInitialize)gvAutoList).EndInit();
             ((System.ComponentModel.ISupportInitialize)numRoundNumber).EndInit();
             ((System.ComponentModel.ISupportInitialize)nRowInsert).EndInit();
@@ -310,7 +310,6 @@
         private Button btnStop;
         private Button btnSave;
         private Button btnLoad;
-        private Button btnTruncate;
         private Label label2;
         public ListBox lbLog;
         private CheckBox chkHookSpacePosition;
@@ -329,5 +328,6 @@
         private DataGridViewCheckBoxColumn cbAllowNotRecheck;
         private DataGridViewTextBoxColumn txtSkipToStepIfImageNotFound;
         private NumericUpDown nRowInsert;
+        private ComboBox cbSaveType;
     }
 }
