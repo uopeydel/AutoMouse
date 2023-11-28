@@ -10,6 +10,8 @@ using System.Text;
 using Timer = System.Windows.Forms.Timer;
 using System.Media;
 using System.Drawing.Imaging;
+using System.IO;
+using System.Reflection.Metadata;
 
 namespace AutoCursorMoveStep
 {
@@ -113,8 +115,8 @@ namespace AutoCursorMoveStep
             gvAutoList.CellContentClick += new DataGridViewCellEventHandler(gvAutoList_CellContentClick);
 
             AppendLogs($"Load");
+
             LoadToGv();
-            SystemSounds.Beep.Play();
         }
 
         private string GetImagePath(string filePath)
@@ -155,14 +157,16 @@ namespace AutoCursorMoveStep
 
 
                     var imageFilePath = GetImagePath($"{e.RowIndex}.png");
+                    SaveBitmapToPath(imageFilePath, _croppedBitmap);
                     //_croppedBitmap.Save(imageFilePath, ImageFormat.Png);
                     //////var image = new Bitmap(width, height);
-                    using (MemoryStream ms = new MemoryStream())
-                    {
-                        //error will throw from here
-                        _croppedBitmap.Save(ms, ImageFormat.Png);
-                    }
+                    /*   using (MemoryStream ms = new MemoryStream())
+                       {
 
+                           //error will throw from here
+                           _croppedBitmap.Save(ms, ImageFormat.Png);
+                       }
+                       */
                 }
 
             }
@@ -178,6 +182,31 @@ namespace AutoCursorMoveStep
             }
         }
 
+        private void SaveBitmapToPath(string filePath, Bitmap imageBitmap)
+        {
+            if (File.Exists(filePath))
+            {
+                //var stream = new FileStream(filePath, FileAccess.Read);
+                //var reader = new StreamReader(stream);
+                File.Delete(filePath);
+            }
+
+
+            using (var ms = new MemoryStream()) //keep stream around
+            {
+                using (var fs = new FileStream(filePath, FileMode.Create)) // keep file around
+                {
+                    // create and save bitmap to memorystream
+                    imageBitmap.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
+
+                }
+                // write the PNG back to the same file from the memorystream
+                using (var png = Image.FromStream(ms))
+                {
+                    png.Save(filePath);
+                }
+            }
+        }
 
         private bool IsEqual(int gvRowIndex)
         {
@@ -216,12 +245,13 @@ namespace AutoCursorMoveStep
             Fetch = 8,
             Equal = 9,
             IsEqual = 10,
-            AllowNotRecheckImage = 11
+            AllowNotRecheckImage = 11,
+            SkipToStepIfImageNotFound = 12
         }
 
         private decimal GetPositionGridview(int rowIndex, int cellIndex)
         {
-            var positionTxtInput = gvAutoList.Rows[rowIndex].Cells[cellIndex].Value?.ToString();
+            var positionTxtInput = gvAutoList.Rows[rowIndex].Cells[cellIndex].Value?.ToString().Replace("\"", "");
             var isParseSuccess = decimal.TryParse(positionTxtInput, out decimal positionPointResult);
 
             if (isParseSuccess == false)
@@ -252,6 +282,8 @@ namespace AutoCursorMoveStep
                 item.BotRightY = GetPositionGridview(i, (int)GVHeaderPosition.BotRightY);
 
                 item.Interval = GetPositionGridview(i, (int)GVHeaderPosition.Interval);
+
+                item.SkipToStepIfImageNotFound = GetPositionGridview(i, (int)GVHeaderPosition.SkipToStepIfImageNotFound);
 
 
 
@@ -346,8 +378,21 @@ namespace AutoCursorMoveStep
             {
                 gvAutoList = new DataGridView();
             }
-            DataGridViewRow dataGridViewRow = new DataGridViewRow();
-            gvAutoList.Rows.Add();
+            if (nRowInsert.Value < 0)
+            {
+                gvAutoList.Rows.Add();
+            }
+            else if (gvAutoList?.SelectedRows.Count > 0 && gvAutoList?.SelectedRows[0]?.Index > 0)
+            {
+                //gvAutoList.Rows.AddCopy((int)nRowInsert.Value);
+                ////gvAutoList.Rows.AddCopy(gvAutoList.SelectedRows[0].Index, (int)nRowInsert.Value ,2);
+                //gvAutoList.Refresh();
+
+                for (int i = 0; i < gvAutoList.Rows[gvAutoList.SelectedRows[0].Index].Cells.Count; i++)
+                {
+                    gvAutoList.Rows[(int)nRowInsert.Value].Cells[i].Value = gvAutoList.Rows[gvAutoList.SelectedRows[0].Index].Cells[i].Value;
+                }
+            }
         }
         private void btnAddRow_Click(object sender, EventArgs e)
         {
@@ -377,7 +422,7 @@ namespace AutoCursorMoveStep
                 cursorTimer.Interval = 100;
                 cursorTimer.Tick += (sender, e) => MouseClickAutoTimmer();
                 cursorTimer.Start();
-                this.WindowState = FormWindowState.Minimized;
+                //this.WindowState = FormWindowState.Minimized;
             }
         }
 
@@ -395,9 +440,9 @@ namespace AutoCursorMoveStep
             {
                 this.WindowState = FormWindowState.Normal;
             }
-            SystemSounds.Hand.Play();
+            //SystemSounds.Hand.Play();
             SystemSounds.Asterisk.Play();
-            SystemSounds.Exclamation.Play();
+            //SystemSounds.Exclamation.Play();
 
             round = 0;
             IsStart = false;
@@ -411,46 +456,62 @@ namespace AutoCursorMoveStep
 
         private void SaveToSqlLite()
         {
-            connection = new SQLiteConnection("Data Source=MyDatabase.db");
-
-            // Open the connection to the SQLite database
-            connection.Open();
-
-
-            // DROP a   table in the SQLite database
-            string dropTableQuery = "DROP TABLE  IF  EXISTS ItemAuto";
-            using (SQLiteCommand command = new SQLiteCommand(dropTableQuery, connection))
+            try
             {
-                command.ExecuteNonQuery();
-            }
+                connection = new SQLiteConnection("Data Source=MyDatabase.db");
 
-            // Create a new table in the SQLite database
-            string createTableQuery = @"CREATE TABLE IF NOT EXISTS ItemAuto 
-(TopLeftX DECIMAL(18,2), TopLeftY DECIMAL(18,2), BotRightX DECIMAL(18,2), BotRightY DECIMAL(18,2), Interval DECIMAL(18,2), Active INTEGER , AllowNotRecheckImage INTEGER)";
-            using (SQLiteCommand command = new SQLiteCommand(createTableQuery, connection))
-            {
-                command.ExecuteNonQuery();
-            }
-            ReadGV();
-            // Insert some data into the SQLite database
-            string insertDataQuery = @"
-INSERT INTO ItemAuto (TopLeftX, TopLeftY, BotRightX, BotRightY, Interval, Active , AllowNotRecheckImage) 
-VALUES (@TopLeftX, @TopLeftY, @BotRightX, @BotRightY, @Interval, @Active , @AllowNotRecheckImage)";
-            using (SQLiteCommand command = new SQLiteCommand(insertDataQuery, connection))
-            {
-                gvDatas.ForEach(f =>
+                // Open the connection to the SQLite database
+                connection.Open();
+
+
+                // DROP a   table in the SQLite database
+                string dropTableQuery = "DROP TABLE  IF  EXISTS ItemAuto";
+                using (SQLiteCommand command = new SQLiteCommand(dropTableQuery, connection))
                 {
-                    command.Parameters.AddWithValue("@TopLeftX", f.TopLeftX);
-                    command.Parameters.AddWithValue("@TopLeftY", f.TopLeftY);
-                    command.Parameters.AddWithValue("@BotRightX", f.BotRightX);
-                    command.Parameters.AddWithValue("@BotRightY", f.BotRightY);
-                    command.Parameters.AddWithValue("@Interval", f.Interval);
-                    command.Parameters.AddWithValue("@Active", f.Active == true ? "1" : "0");
-                    command.Parameters.AddWithValue("@AllowNotRecheckImage", f.AllowNotRecheckImage == true ? "1" : "0");
-
                     command.ExecuteNonQuery();
-                });
+                }
 
+                // Create a new table in the SQLite database
+                string createTableQuery = @"CREATE TABLE IF NOT EXISTS ItemAuto 
+(
+TopLeftX DECIMAL(18,2), 
+TopLeftY DECIMAL(18,2), 
+BotRightX DECIMAL(18,2), 
+BotRightY DECIMAL(18,2), 
+Interval DECIMAL(18,2), 
+Active INTEGER , 
+AllowNotRecheckImage INTEGER ,
+SkipToStepIfImageNotFound INTEGER )";
+                using (SQLiteCommand command = new SQLiteCommand(createTableQuery, connection))
+                {
+                    command.ExecuteNonQuery();
+                }
+                ReadGV();
+                // Insert some data into the SQLite database
+                string insertDataQuery = @"
+INSERT INTO ItemAuto (TopLeftX, TopLeftY, BotRightX, BotRightY, Interval, Active , AllowNotRecheckImage ,SkipToStepIfImageNotFound ) 
+VALUES (@TopLeftX, @TopLeftY, @BotRightX, @BotRightY, @Interval, @Active , @AllowNotRecheckImage , @SkipToStepIfImageNotFound )";
+                using (SQLiteCommand command = new SQLiteCommand(insertDataQuery, connection))
+                {
+                    gvDatas.ForEach(f =>
+                    {
+                        command.Parameters.AddWithValue("@TopLeftX", f.TopLeftX);
+                        command.Parameters.AddWithValue("@TopLeftY", f.TopLeftY);
+                        command.Parameters.AddWithValue("@BotRightX", f.BotRightX);
+                        command.Parameters.AddWithValue("@BotRightY", f.BotRightY);
+                        command.Parameters.AddWithValue("@Interval", f.Interval);
+                        command.Parameters.AddWithValue("@Active", f.Active == true ? "1" : "0");
+                        command.Parameters.AddWithValue("@AllowNotRecheckImage", f.AllowNotRecheckImage == true ? "1" : "0");
+                        command.Parameters.AddWithValue("@SkipToStepIfImageNotFound", f.SkipToStepIfImageNotFound.ToString());
+
+                        command.ExecuteNonQuery();
+                    });
+
+                }
+            }
+            catch (Exception ex)
+            {
+                AppendLogs(ex.Message);
             }
 
         }
@@ -471,45 +532,61 @@ VALUES (@TopLeftX, @TopLeftY, @BotRightX, @BotRightY, @Interval, @Active , @Allo
         }
         private void LoadToGv()
         {
-            connection = new SQLiteConnection("Data Source=MyDatabase.db");
-
-            // Open the connection to the SQLite database
-            connection.Open();
-
-            // Load the data from the SQLite database into the DataGridView
-            string loadDataQuery = "SELECT * FROM ItemAuto";
-            using (SQLiteDataAdapter adapter = new SQLiteDataAdapter(loadDataQuery, connection))
+            try
             {
-                DataSet dataSet = new DataSet();
-                adapter.Fill(dataSet);
-                gvAutoList.Rows.Clear();
-                gvAutoList.Refresh();
+                connection = new SQLiteConnection("Data Source=MyDatabase.db");
 
-                var row = dataSet.Tables[0].Rows;
-                for (int i = 0; i < row.Count; i++)
+                // Open the connection to the SQLite database
+                connection.Open();
+
+                // Load the data from the SQLite database into the DataGridView
+                string loadDataQuery = "SELECT * FROM ItemAuto";
+                using (SQLiteDataAdapter adapter = new SQLiteDataAdapter(loadDataQuery, connection))
                 {
-                    AddRow();
-                    gvAutoList.Rows[i].Cells[(int)GVHeaderPosition.TopLeftX].Value = row[i].Field<decimal>("TopLeftX").ToString();
-                    gvAutoList.Rows[i].Cells[(int)GVHeaderPosition.TopLeftY].Value = row[i].Field<decimal>("TopLeftY").ToString();
-                    gvAutoList.Rows[i].Cells[(int)GVHeaderPosition.BotRightX].Value = row[i].Field<decimal>("BotRightX").ToString();
-                    gvAutoList.Rows[i].Cells[(int)GVHeaderPosition.BotRightY].Value = row[i].Field<decimal>("BotRightY").ToString();
-                    gvAutoList.Rows[i].Cells[(int)GVHeaderPosition.Interval].Value = row[i].Field<decimal>("Interval").ToString();
-                    var dtActive = row[i].Field<long>("Active");
-                    gvAutoList.Rows[i].Cells[(int)GVHeaderPosition.Active].Value = dtActive == 1 ? true : false;
+                    DataSet dataSet = new DataSet();
+                    adapter.Fill(dataSet);
+                    gvAutoList.Rows.Clear();
+                    gvAutoList.Refresh();
 
-                    var dtAllowNotRecheckImage = row[i].Field<long>("AllowNotRecheckImage");
-                    gvAutoList.Rows[i].Cells[(int)GVHeaderPosition.AllowNotRecheckImage].Value = dtAllowNotRecheckImage == 1 ? true : false;
-
-                    var imageFilePath = GetImagePath($"{i}.png");
-                    if (File.Exists(imageFilePath))
+                    var row = dataSet.Tables[0].Rows;
+                    for (int i = 0; i < row.Count; i++)
                     {
-                        Image imageFile = Image.FromFile(imageFilePath);
-                        gvAutoList.Rows[i].Cells[(int)GVHeaderPosition.ReCheck].Value = (Bitmap)imageFile;
-                        imageFile = null;
+                        AddRow();
+                        gvAutoList.Rows[i].Cells[(int)GVHeaderPosition.TopLeftX].Value = row[i].Field<decimal>("TopLeftX").ToString();
+                        gvAutoList.Rows[i].Cells[(int)GVHeaderPosition.TopLeftY].Value = row[i].Field<decimal>("TopLeftY").ToString();
+                        gvAutoList.Rows[i].Cells[(int)GVHeaderPosition.BotRightX].Value = row[i].Field<decimal>("BotRightX").ToString();
+                        gvAutoList.Rows[i].Cells[(int)GVHeaderPosition.BotRightY].Value = row[i].Field<decimal>("BotRightY").ToString();
+                        gvAutoList.Rows[i].Cells[(int)GVHeaderPosition.Interval].Value = row[i].Field<decimal>("Interval").ToString();
+
+                        //var dtSkipToStepIfImageNotFound = $"""{row[i].Field<long>("SkipToStepIfImageNotFound")}""";
+                        var dtSkipToStepIfImageNotFound = row[i].Field<long>("SkipToStepIfImageNotFound");
+                        gvAutoList.Rows[i].Cells[(int)GVHeaderPosition.SkipToStepIfImageNotFound].Value = dtSkipToStepIfImageNotFound.ToString();
+
+                        var dtActive = row[i].Field<long>("Active");
+                        gvAutoList.Rows[i].Cells[(int)GVHeaderPosition.Active].Value = dtActive == 1 ? true : false;
+
+                        var dtAllowNotRecheckImage = row[i].Field<long>("AllowNotRecheckImage");
+                        gvAutoList.Rows[i].Cells[(int)GVHeaderPosition.AllowNotRecheckImage].Value = dtAllowNotRecheckImage == 1 ? true : false;
+
+                        var imageFilePath = GetImagePath($"{i}.png");
+                        if (File.Exists(imageFilePath))
+                        {
+                            var stream = new FileStream(imageFilePath, FileMode.Open, FileAccess.Read);
+                            var imageFile = Image.FromStream(stream);
+                            gvAutoList.Rows[i].Cells[(int)GVHeaderPosition.ReCheck].Value = (Bitmap)imageFile;
+                            imageFile = null;
+                            stream.Dispose();
+                            //imageFile.Dispose();
+                        }
                     }
                 }
+                ReadGV();
             }
-            ReadGV();
+            catch (Exception ex)
+            {
+
+                AppendLogs(ex.Message);
+            }
         }
 
         private void btnSave_Click(object sender, EventArgs e)
@@ -545,6 +622,26 @@ VALUES (@TopLeftX, @TopLeftY, @BotRightX, @BotRightY, @Interval, @Active , @Allo
         private int roundRecheck = 0;
         private Rectangle captureAreaFound;
 
+        private Color defaultColor = Color.Black;
+        private void ChangeRowColor(int processNumber)
+        {
+          
+            foreach (DataGridViewRow row in gvAutoList.Rows)
+            {
+                if (defaultColor == Color.Black)
+                {
+                    defaultColor = row.DefaultCellStyle.BackColor;
+                }
+                if (row.Index == processNumber)
+                {
+                    row.DefaultCellStyle.BackColor = Color.LightBlue;
+                }
+                else
+                {
+                    row.DefaultCellStyle.BackColor = defaultColor;
+                }
+            }
+        }
         private void MouseClickAutoTimmer()
         {
             timerMilisecCountForStepProcess += cursorTimer.Interval;
@@ -559,9 +656,13 @@ VALUES (@TopLeftX, @TopLeftY, @BotRightX, @BotRightY, @Interval, @Active , @Allo
                 }
 
                 // AppendLogs($"Round = {round} : Process No = {processNumber} : IsStop = {MoveCursorService.isStop}");
+
+                //When to run until end of round process (line of gridview finish) then go to process 0 and run nest round
                 if (processNumber >= gvDatas.Count)
                 {
+
                     processNumber = 0;
+                    ChangeRowColor(processNumber);
                     round--;
                     timerMilisecCountForStepProcess = msWaitRecheck = 0;
                     roundRecheck = 0;
@@ -581,18 +682,21 @@ VALUES (@TopLeftX, @TopLeftY, @BotRightX, @BotRightY, @Interval, @Active , @Allo
                     return;
                 }
 
-                int limitRoundCheck = 10;
+                int limitRoundCheck = processNumber <= 5? 3:10;
 
                 if (roundRecheck > limitRoundCheck)
                 {
-                    cursorTimer.Stop();
-                    AppendLogs($"Unable to check image same = {processNumber} ");
-                    MessageBox.Show($"Unable to check image same = {processNumber} ");
-                    round = 0;
-                    IsStart = false;
-                    processNumber = 0;
-                    roundRecheck = 0;
-                    timerMilisecCountForStepProcess = msWaitRecheck = 0;
+                    // When unable to check image we can fix loop by skip step if combobox select value to exist step
+                    if (gvDatas[processNumber].SkipToStepIfImageNotFound > -1 && gvDatas[processNumber].SkipToStepIfImageNotFound < gvDatas.Count())
+                    {
+                        processNumber = (int)gvDatas[processNumber].SkipToStepIfImageNotFound;  // processNumber = 0;
+                        ChangeRowColor(processNumber);
+                        round--;
+                        timerMilisecCountForStepProcess = msWaitRecheck = 0;
+                        roundRecheck = 0;
+                        return;
+                    }
+                    OnStopLoop($"Unable to check image same = {processNumber} ");
                     return;
                 }
 
@@ -626,6 +730,7 @@ VALUES (@TopLeftX, @TopLeftY, @BotRightX, @BotRightY, @Interval, @Active , @Allo
                 LeftMouseClick();
 
                 processNumber++;
+                ChangeRowColor(processNumber);
                 roundRecheck = 0;
                 timerMilisecCountForStepProcess = msWaitRecheck = 0;
             }

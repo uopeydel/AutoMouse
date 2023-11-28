@@ -16,6 +16,7 @@ namespace AutoCursorMoveStep.Models
         public decimal? Interval { get; set; }
         public bool? Active { get; set; }
 
+        public decimal? SkipToStepIfImageNotFound { get; set; }
 
 
         public bool? AllowNotRecheckImage { get; set; }
