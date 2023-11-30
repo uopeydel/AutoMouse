@@ -91,6 +91,7 @@ namespace AutoCursorMoveStep.Service
 
         public static void MouseEventWheelDown()
         {
+            return;
             MousePoint position = GetCursorPosition();
 
             mouse_event

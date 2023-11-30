@@ -52,7 +52,8 @@ namespace AutoCursorMoveStep.Service
             double distance = CalculateDistance(image1Bytes, image2Bytes);
 
             // Determine if the images are likely or close
-            return distance < 0.1;
+            //return distance < 0.1;
+            return distance < 1;
         }
         private static byte[] GetImageBytes(Bitmap bitmap)
         { 

@@ -15,6 +15,7 @@ using System.Reflection.Metadata;
 using System.Text.Json.Serialization;
 using Newtonsoft.Json;
 using System.Data.Entity.Core.Common.CommandTrees.ExpressionBuilder;
+using System.Runtime.Intrinsics.X86;
 
 namespace AutoCursorMoveStep
 {
@@ -461,9 +462,10 @@ namespace AutoCursorMoveStep
                 cursorTimer.Interval = 100;
                 cursorTimer.Tick += (sender, e) => MouseClickAutoTimmer();
                 cursorTimer.Start();
-                //this.WindowState = FormWindowState.Minimized;
+                this.WindowState = FormWindowState.Minimized;
             }
         }
+
 
         private void btnStop_Click(object sender, EventArgs e)
         {
@@ -478,6 +480,21 @@ namespace AutoCursorMoveStep
             if (res == DialogResult.OK)
             {
                 this.WindowState = FormWindowState.Normal;
+
+                int plusRound = 3;
+                var ranNewRound = (int)numRoundNumber.Value + RandomIntBetween(-3, plusRound);
+                while (ranNewRound < 5 || ranNewRound > 100)
+                {
+                    plusRound++;
+                    ranNewRound = (int)numRoundNumber.Value + RandomIntBetween(-3, plusRound);
+                }
+                int minRound = -3;
+                while (ranNewRound > 100)
+                {
+                    minRound--;
+                    ranNewRound = (int)numRoundNumber.Value + RandomIntBetween(minRound, 3);
+                }
+                numRoundNumber.Value = ranNewRound;
             }
             //SystemSounds.Hand.Play();
             SystemSounds.Asterisk.Play();
@@ -489,7 +506,16 @@ namespace AutoCursorMoveStep
             roundRecheck = 0;
             timerMilisecCountForStepProcess = msWaitRecheck = 0;
         }
+        public int RandomIntBetween(int minValue, int maxValue)
+        {
+            if (minValue > maxValue)
+            {
+                throw new ArgumentException("minValue cannot be greater than maxValue");
+            }
 
+            Random random = new Random();
+            return random.Next(minValue, maxValue + 1);
+        }
         #region Save data
         private SQLiteConnection connection;
 
@@ -499,6 +525,7 @@ namespace AutoCursorMoveStep
             {
                 try
                 {
+                    var tableNamee = $"ItemAuto{cbSaveType.SelectedIndex}";
                     connection = new SQLiteConnection("Data Source=MyDatabase.db");
 
                     // Open the connection to the SQLite database
@@ -506,14 +533,14 @@ namespace AutoCursorMoveStep
 
 
                     // DROP a   table in the SQLite database
-                    string dropTableQuery = "DROP TABLE  IF  EXISTS ItemAuto";
+                    string dropTableQuery = $"DROP TABLE IF EXISTS {tableNamee}";
                     using (SQLiteCommand command = new SQLiteCommand(dropTableQuery, connection))
                     {
                         command.ExecuteNonQuery();
                     }
 
                     // Create a new table in the SQLite database
-                    string createTableQuery = @"CREATE TABLE IF NOT EXISTS ItemAuto 
+                    string createTableQuery = $@"CREATE TABLE IF NOT EXISTS {tableNamee} 
 (
 TopLeftX DECIMAL(18,2), 
 TopLeftY DECIMAL(18,2), 
@@ -529,8 +556,8 @@ SkipToStepIfImageNotFound INTEGER )";
                     }
                     ReadGV();
                     // Insert some data into the SQLite database
-                    string insertDataQuery = @"
-INSERT INTO ItemAuto (TopLeftX, TopLeftY, BotRightX, BotRightY, Interval, Active , AllowNotRecheckImage ,SkipToStepIfImageNotFound ) 
+                    string insertDataQuery = $@"
+INSERT INTO {tableNamee} (TopLeftX, TopLeftY, BotRightX, BotRightY, Interval, Active , AllowNotRecheckImage ,SkipToStepIfImageNotFound ) 
 VALUES (@TopLeftX, @TopLeftY, @BotRightX, @BotRightY, @Interval, @Active , @AllowNotRecheckImage , @SkipToStepIfImageNotFound )";
                     using (SQLiteCommand command = new SQLiteCommand(insertDataQuery, connection))
                     {
@@ -577,13 +604,14 @@ VALUES (@TopLeftX, @TopLeftY, @BotRightX, @BotRightY, @Interval, @Active , @Allo
         }
         private void ClearSqlLite()
         {
+            var tableNamee = $"ItemAuto{cbSaveType.SelectedIndex}";
             connection = new SQLiteConnection("Data Source=MyDatabase.db");
 
             // Open the connection to the SQLite database
             connection.Open();
 
             // DROP a   table in the SQLite database
-            string createTableQuery = "DROP TABLE  IF  EXISTS ItemAuto";
+            string createTableQuery = $"DROP TABLE  IF  EXISTS {tableNamee}";
             using (SQLiteCommand command = new SQLiteCommand(createTableQuery, connection))
             {
                 command.ExecuteNonQuery();
@@ -596,13 +624,14 @@ VALUES (@TopLeftX, @TopLeftY, @BotRightX, @BotRightY, @Interval, @Active , @Allo
             {
                 try
                 {
+                    var tableNamee = $"ItemAuto{cbSaveType.SelectedIndex}";
                     connection = new SQLiteConnection("Data Source=MyDatabase.db");
 
                     // Open the connection to the SQLite database
                     connection.Open();
 
                     // Load the data from the SQLite database into the DataGridView
-                    string loadDataQuery = "SELECT * FROM ItemAuto";
+                    string loadDataQuery = $"SELECT * FROM {tableNamee}";
                     using (SQLiteDataAdapter adapter = new SQLiteDataAdapter(loadDataQuery, connection))
                     {
                         DataSet dataSet = new DataSet();
@@ -706,7 +735,7 @@ VALUES (@TopLeftX, @TopLeftY, @BotRightX, @BotRightY, @Interval, @Active , @Allo
             //cbSaveType.Items[cbSaveType.SelectedIndex].va
             //var selectedSave = (System.Windows.Forms.ComboBox)cbSaveType;
             //var textToSave = selectedSave.SelectedItem.ToString();
-            
+
 
             AppendLogs($"Save");
             Save();
@@ -789,7 +818,7 @@ VALUES (@TopLeftX, @TopLeftY, @BotRightX, @BotRightY, @Interval, @Active , @Allo
                     return;
                 }
 
-                if (timerMilisecCountForStepProcess < convertSecondToMilisecond(gvDatas[processNumber].Interval.Value))
+                if (timerMilisecCountForStepProcess < convertSecondToMilisecond(gvDatas[processNumber].Interval.Value) +RandomIntBetween(0,1))
                 {
                     //Continue waiting
                     return;
@@ -882,6 +911,13 @@ VALUES (@TopLeftX, @TopLeftY, @BotRightX, @BotRightY, @Interval, @Active , @Allo
                 captureAreaFound = new Rectangle((int)gvDatas[processNumber].TopLeftX, (int)gvDatas[processNumber].TopLeftY, (int)rectWidth, (int)rectHeight);
                 CaptureScreen(captureAreaFound);
                 gvAutoList.Rows[processNumber].Cells[(int)GVHeaderPosition.Position].Value = _croppedBitmap;
+
+
+                var IsLikely = ImageComparer.IsLikely(_bmSmall, _croppedBitmap);
+                if (IsLikely)
+                {
+                    return true;
+                }
                 SystemSounds.Question.Play();
                 AppendLogs("bitmapSmall is not found in bitmapBig");
                 return false;
