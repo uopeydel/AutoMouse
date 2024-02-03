@@ -66,6 +66,17 @@ namespace AutoCursorMoveStep.Service
                  0)
                 ;
         }
+        public static void MouseEvent(MouseEventFlags value , int x , int y)
+        { 
+            mouse_event
+                ((int)value,
+                 x,
+                 y,
+                 0,
+                 0)
+                ;
+        }
+
 
         [StructLayout(LayoutKind.Sequential)]
         public struct MousePoint
@@ -84,7 +95,7 @@ namespace AutoCursorMoveStep.Service
         {
             MouseEvent(MouseEventFlags.LeftDown);
             System.Threading.Thread.Sleep(GenerateRandomMillisecond(1, 2));
-            SystemSounds.Beep.Play();
+           //  SystemSounds.Beep.Play();
             //(new System.Media.SoundPlayer(@"D:\Code\Git\AutoMouse\AutoCursorMoveStep\AutoCursorMoveStep\sound\click.wav")).Play(); ;
             MouseEvent(MouseEventFlags.LeftUp);
         }

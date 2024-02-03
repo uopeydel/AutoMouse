@@ -1,0 +1,117 @@
+﻿@page "/counter"
+
+<PageTitle>Capture</PageTitle>
+ 
+<h1>Capture</h1>
+@if (imageSource is not null)
+{
+<p>
+<img src="@imageSource" />
+</p>
+}
+ 
+<input type="number" @bind-value=posX max="600" min="1"/>
+<input type="number" @bind-value=posY max="600" min="1"/>
+<button class="btn btn-primary" @onclick="Capture">Capture</button>
+<button class="btn btn-primary" @onclick="Click">Click</button>
+ 
+ 
+@code {
+ 
+	[DllImport("user32.dll")]
+	private static extern void mouse_event(int dwFlags, int dx, int dy, int dwData, int dwExtraInfo);
+	[DllImport("user32.dll", EntryPoint = "SetCursorPos")]
+	[return: MarshalAs(UnmanagedType.Bool)]
+	private static extern bool SetCursorPos(int x, int y);
+ 
+ 
+	public int posX = 90;
+	public int posY = 90;
+ 
+	private void Capture()
+	{ 
+		ShowImage();
+	}
+	private void Click()
+	{
+		SetCursorPos(posX, posY);
+		MouseEvent(MouseEventFlags.LeftDown, posX, posY);
+		MouseEvent(MouseEventFlags.LeftUp, posX, posY);
+	}
+	private string? imageSource;
+ 
+	private void ShowImage()
+	{
+		imageSource = $"data:png;base64,{Convert.ToBase64String(CaptureScreen())}"; 
+	} 
+	private byte[] CaptureScreen()
+	{
+		using (Bitmap bitmap = new Bitmap(600, 600))
+		{
+			using (Graphics graphics = Graphics.FromImage(bitmap))
+			{
+				graphics.CopyFromScreen(Point.Empty, Point.Empty, bitmap.Size);
+			}
+			Point index = new Point(posX,posY);
+			//DrawCircl(index, bitmap, 10);
+			DrawRectangle(bitmap , index, new Size { Height = 20, Width = 50 });
+			using (var stream = new MemoryStream())
+			{
+				bitmap.Save(stream, System.Drawing.Imaging.ImageFormat.Png);
+				return stream.ToArray();
+			}
+		}
+	}
+	public void DrawCircl(Point index, Bitmap img, int Radius)
+	{
+		for (int i = 0; i < 360; i++)
+		{
+			double x = index.X - Radius * Math.Cos(2 * Math.PI / 360 * i);
+			double y = index.Y - Radius * Math.Sin(2 * Math.PI / 360 * i);
+			img.SetPixel((int)x, (int)y, Color.Red);
+		}
+	}
+ 
+	public void DrawRectangle(Bitmap img, Point index, Size recSize)
+	{
+		System.Drawing.Rectangle rect = new System.Drawing.Rectangle(index,recSize);
+		Color customColor = Color.FromArgb(50, Color.Red);
+		// HatchBrush shadowBrush = new HatchBrush(HatchStyle.ZigZag, customColor);
+		Brush _shadowBrush = new SolidBrush(Color.FromKnownColor(KnownColor.Red));
+		Pen shadowBrush = new Pen(_shadowBrush,3);
+		/*
+	System.Drawing.Drawing2D.HatchBrush
+	System.Drawing.Drawing2D.LinearGradientBrush
+	System.Drawing.Drawing2D.PathGradientBrush
+	SolidBrush shadowBrush = new SolidBrush(customColor);
+			*/
+		using (Graphics g = Graphics.FromImage(img))
+		{
+			g.DrawRectangle(shadowBrush, rect.X, rect.Y, rect.Width, rect.Height);
+			// g.FillRectangles(shadowBrush, new RectangleF[] { rect });
+		}
+	}
+ 
+	[Flags]
+	public enum MouseEventFlags
+	{
+		LeftDown = 0x00000002,
+		LeftUp = 0x00000004,
+		MiddleDown = 0x00000020,
+		MiddleUp = 0x00000040,
+		Move = 0x00000001,
+		Absolute = 0x00008000,
+		RightDown = 0x00000008,
+		RightUp = 0x00000010
+	}
+	public static void MouseEvent(MouseEventFlags value , int x , int y)
+	{ 
+		mouse_event
+			((int)value,
+				x,
+				y,
+				0,
+				0)
+			;
+	}
+}

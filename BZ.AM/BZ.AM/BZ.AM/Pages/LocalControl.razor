@@ -1,0 +1,591 @@
+﻿@page "/LocalControl"
+
+
+<PageTitle>LocalControl</PageTitle>
+@if (itemAutos != null)
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Index</th>
+                <th>Current Image</th>
+                <th>Compare Image</th>
+                <th>X</th>
+                <th>Y</th>
+                <th>Width</th>
+                <th>Height</th>
+                <th>Interval</th>
+                <th>Skip Step If Not Match Image</th>
+                <th>Active</th>
+                <th>Fetch</th>
+                <th>Is Equal</th>
+            </tr>
+        </thead>
+        <tbody>
+
+            
+
+            @for (int i = 0; i < itemAutos.Count; i++)
+            {
+                var currentItem = itemAutos[i];
+                var currentIndex = i;
+                <tr style="@ChangeRowColor(currentIndex)">
+                    <td>@currentIndex</td>
+                    <td> <img src="@Base64StringToImage(@itemAutos[i].CurrentImageBase64)" /> </td>
+                    <td> <img src="@Base64StringToImage(@itemAutos[i].CompareImageBase64)" /> </td>
+                    <td>
+                        <input type="number" @bind-value=itemAutos[i].X max="900" min="90" />
+                    </td>
+                    <td>
+                        <input type="number" @bind-value=itemAutos[i].Y max="900" min="90" />
+                    </td>
+                    <td>
+                        <input type="number" @bind-value=itemAutos[i].Width max="300" min="10" />
+                    </td>
+                    <td>
+                        <input type="number" @bind-value=itemAutos[i].Height max="300" min="10" />
+                    </td>
+                    <td>
+                        <input type="number" @bind-value=itemAutos[i].Interval max="20" min="1" />
+                    </td>
+                    <td>
+                        <input type="number" @bind-value=itemAutos[i].SkipToStepIfImageNotFound max="@itemAutos.Count" min="-1" />
+                    </td>
+                    <td>
+                        <input type="checkbox" @bind-value=itemAutos[i].Active />
+                    </td>
+                    <td>
+                        <button class="btn btn-primary" @onclick="(()=> Fetch(currentIndex))">Fetch</button>
+                    </td>
+                    <td>
+                        <button class="btn btn-primary" @onclick="(()=> IsEqual(currentIndex))">IsEqual</button>
+                    </td>
+                </tr>
+            }
+
+
+        </tbody>
+    </table>
+}
+
+<button class="btn btn-primary" @onclick="AddRow">AddRow</button>
+
+<input type="number" @bind-value=RowFrom max="@itemAutos.Count" min="-1" />
+<input type="number" @bind-value=RowTo max="@itemAutos.Count" min="-1" />
+<input type="number" @bind-value=numRoundNumber max="10000" min="5" />
+
+
+@if (imageSource is not null)
+{
+    <p>
+        <img src="@imageSource" />
+    </p>
+}
+
+<input type="number" @bind-value=posX max="600" min="1" />
+<input type="number" @bind-value=posY max="600" min="1" />
+<button class="btn btn-primary" @onclick="Capture">Capture</button>
+<button class="btn btn-primary" @onclick="Click">Click</button>
+
+
+@code {
+    @inject IJSRuntime JsRuntime;
+    @inject IWebHostEnvironment hostEnvironment;
+    private static List<ItemAuto> itemAutos;
+    private int RowFrom = -1;
+    private int RowTo = -1;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        AddRow();
+    }
+
+    private List<string> lbLog;
+    public void AppendLogs(string logs)
+    {
+        if (lbLog == null)
+        {
+            lbLog = new List<string> { };
+
+        }
+        if (string.IsNullOrEmpty(logs))
+        {
+            return;
+        }
+
+        logs = DateTime.Now.ToString("HH:mm:sss | ") + logs;
+        lbLog.Add(logs);
+    }
+    private string Base64StringToImage(string Base64String)
+    {
+        if (string.IsNullOrEmpty(Base64String))
+        {
+            return "";    
+        }
+        return $"data:png;base64,{Base64String}";
+    }
+
+    private void Fetch(int currentIndex)
+    {
+        if (itemAutos == null || itemAutos.Count() < currentIndex)
+        {
+            return;
+        }
+
+        Rectangle captureArea = new Rectangle(itemAutos[currentIndex].X, itemAutos[currentIndex].Y, itemAutos[currentIndex].Width, itemAutos[currentIndex].Height);
+        CaptureScreen(captureArea);
+
+    }
+    private void IsEqual(int currentIndex)
+    {
+        if (itemAutos == null || itemAutos.Count() < currentIndex)
+        {
+            return;
+        }
+
+
+    }
+
+    private static Bitmap _croppedBitmap;
+    private static Bitmap _bmSmall;
+    private void CaptureScreen(Rectangle captureArea)
+    {
+        //Bitmap result;
+        using (Bitmap bitmap = new Bitmap(800, 800))
+        {
+            using (Graphics graphics = Graphics.FromImage(bitmap))
+            {
+                graphics.CopyFromScreen(Point.Empty, Point.Empty, bitmap.Size);
+            }
+            //Bitmap croppedBitmap = bitmap.Clone(captureArea, bitmap.PixelFormat);
+            //result = croppedBitmap;
+            _croppedBitmap = CropBitmap(bitmap, captureArea);
+        }
+        //return result;
+    }
+    private Bitmap CropBitmap(Bitmap source, Rectangle cropArea)
+    {
+        // Check if the crop area is within the bounds of the source bitmap
+        if (!cropArea.IntersectsWith(GetBitmapBounds(source)))
+        {
+            throw new ArgumentException("Crop area is outside the bounds of the source bitmap");
+        }
+
+        // Create a new bitmap with the same dimensions as the crop area
+        Bitmap croppedBitmap = new Bitmap(cropArea.Width, cropArea.Height);
+
+        // Use Graphics to draw the cropped portion of the source bitmap onto the new bitmap
+        using (Graphics g = Graphics.FromImage(croppedBitmap))
+        {
+            g.DrawImage(source, new Rectangle(0, 0, cropArea.Width, cropArea.Height), cropArea, GraphicsUnit.Pixel);
+        }
+
+        // Return the cropped bitmap
+        return croppedBitmap;
+    }
+    private Rectangle GetBitmapBounds(Bitmap bitmap)
+    {
+        Rectangle bounds = Rectangle.Empty;
+        bounds = new Rectangle(0, 0, bitmap.Width, bitmap.Height);
+        return bounds;
+    }
+    private void AddRow()
+    {
+        if (itemAutos == null)
+        {
+            itemAutos = new List<ItemAuto>();
+        }
+        if (RowFrom < 0 || RowTo < 0)
+        {
+            itemAutos.Add(new ItemAuto { });
+        }
+        else if (RowFrom > 0 && RowTo > 0 && RowFrom < itemAutos.Count && RowTo < itemAutos.Count)
+        {
+            itemAutos[RowTo] = itemAutos[RowFrom];
+        }
+    }
+
+
+    private void Start()
+    {
+        AppendLogs($"Click Start");
+        if (IsStart == false)
+        {
+            round = numRoundNumber;
+            IsStart = true;
+            cursorTimer = new Timer(MouseClickAutoTimmer, null, TIME_INTERVAL_IN_MILLISECONDS, Timeout.Infinite);
+        }
+    }
+    private async void MouseClickAutoTimmer(Object state)
+    {
+        timerMilisecCountForStepProcess += TIME_INTERVAL_IN_MILLISECONDS;
+
+        //System.Threading.Thread.Sleep(timmerClickAuto.Interval);
+        try
+        {
+            if (round <= 0)
+            {
+                OnStopLoop($"Round end ");
+                return;
+            }
+
+            // AppendLogs($"Round = {round} : Process No = {processNumber} : IsStop = {MoveCursorService.isStop}");
+
+            //When to run until end of round process (line of gridview finish) then go to process 0 and run nest round
+            if (processNumber >= itemAutos.Count)
+            {
+
+                processNumber = 0;
+                ChangeRowColor(processNumber);
+                round--;
+                timerMilisecCountForStepProcess = msWaitRecheck = 0;
+                roundRecheck = 0;
+                return;
+            }
+
+            var isNotActive = (itemAutos[processNumber].Active == true);
+            if (!isNotActive)
+            {
+                OnStopLoop($"Found unactive job Process No = {processNumber} ");
+                return;
+            }
+
+            if (timerMilisecCountForStepProcess < convertSecondToMilisecond(itemAutos[processNumber].Interval + RandomIntBetween(0, 1)))
+            {
+                //Continue waiting
+                return;
+            }
+
+            int limitRoundCheck = processNumber <= 5 ? 3 : 10;
+
+            if (roundRecheck > limitRoundCheck)
+            {
+                // When unable to check image we can fix loop by skip step if combobox select value to exist step
+                if (itemAutos[processNumber].SkipToStepIfImageNotFound > -1 && itemAutos[processNumber].SkipToStepIfImageNotFound < itemAutos.Count())
+                {
+                    processNumber = (int)itemAutos[processNumber].SkipToStepIfImageNotFound;  // processNumber = 0;
+                    ChangeRowColor(processNumber);
+                    round--;
+                    timerMilisecCountForStepProcess = msWaitRecheck = 0;
+                    roundRecheck = 0;
+                    return;
+                }
+                OnStopLoop($"Unable to check image same = {processNumber} ");
+                if (DateTime.Now.Hour > 22)
+                {
+                    //var psi = new ProcessStartInfo("shutdown", "/s /t 0");
+                    //psi.CreateNoWindow = true;
+                    //psi.UseShellExecute = false;
+                    //Process.Start(psi);
+                }
+                return;
+            }
+
+            if ((roundRecheck > 0)
+                && (roundRecheck <= limitRoundCheck)
+                && (timerMilisecCountForStepProcess <= msWaitRecheck))
+            {
+                //Continue waiting round recheck
+                return;
+            }
+
+            Point mousePoint;
+
+            var isEqual = SearchEqualImageInScreen(processNumber);// gvDatas[processNumber].IsBitMapEqual;// true;//
+            AppendLogs($"Round = {round} : Process No = {processNumber} : Is Equal :X {isEqual}");
+            if (isEqual == false)
+            {
+                roundRecheck++;
+                msWaitRecheck = MouseOperationsService.GenerateRandomMillisecond(2, 4) + timerMilisecCountForStepProcess;
+                //MouseEventWheelDown();
+                AppendLogs($"Round = {round} : Process No = {processNumber} : WaitRound {roundRecheck} | Wait Time {msWaitRecheck}");
+                return;
+            }
+            Rectangle captureArea = new Rectangle(itemAutos[processNumber].X, itemAutos[processNumber].Y, itemAutos[processNumber].Width, itemAutos[processNumber].Height);
+            mousePoint = GetRandomPointInRectangle(captureArea);
+            if (isEqual == true)
+            {
+                mousePoint = GetRandomPointInRectangle(captureAreaFound);
+            }
+            MouseOperationsService.SetCursorPosition(mousePoint.X, mousePoint.Y);
+            AppendLogs($"Mouse point :X {mousePoint.X} , Y {mousePoint.Y}");
+            MouseOperationsService.LeftMouseClick(new MouseOperationsService.MousePoint(mousePoint.X, mousePoint.X));
+
+            processNumber++;
+            ChangeRowColor(processNumber);
+            roundRecheck = 0;
+            timerMilisecCountForStepProcess = msWaitRecheck = 0;
+        }
+        catch (Exception ex)
+        {
+            cursorTimer.Dispose();
+            AppendLogs($"ex {ex.Message}");
+            //(await JsRuntime.InvokeAsync("alert", ex.Message);
+        }
+    }
+
+
+    private bool SearchEqualImageInScreen(int processNumber)
+    {
+        Rectangle captureAreaForSearch = new Rectangle((int)0, (int)0, (int)800, (int)800);
+        CaptureScreen(captureAreaForSearch);
+        var screenShort = _croppedBitmap;
+
+        _bmSmall = ImageComparer.ConvertByteToBitmap(ImageComparer.ConvertFromBase64String(itemAutos[processNumber].CompareImageBase64));
+
+        var rectWidth = itemAutos[processNumber].Width;
+        var rectHeight = itemAutos[processNumber].Height;
+        Point positionResult = FindBitmapSmallPosition(screenShort, _bmSmall); //--**
+
+        if (positionResult.X != -1 && positionResult.Y != -1)
+        {
+            AppendLogs("bitmapSmall is found at position (" + positionResult.X + ", " + positionResult.Y + ")");
+
+            captureAreaFound = new Rectangle((int)positionResult.X, (int)positionResult.Y, (int)rectWidth, (int)rectHeight);//--**
+            CaptureScreen(captureAreaFound);
+            itemAutos[processNumber].CurrentImageBase64 = Convert.ToBase64String(ImageComparer.GetImageBytes(_croppedBitmap));
+            return true;
+        }
+        else
+        {
+            captureAreaFound = new Rectangle((int)itemAutos[processNumber].X, (int)itemAutos[processNumber].Y, (int)rectWidth, (int)rectHeight);
+            CaptureScreen(captureAreaFound);
+            itemAutos[processNumber].CurrentImageBase64 = Convert.ToBase64String(ImageComparer.GetImageBytes(_croppedBitmap));
+
+
+            var IsLikely = ImageComparer.IsLikely(_bmSmall, _croppedBitmap);
+            if (IsLikely)
+            {
+                return true;
+            }
+            //  SystemSounds.Question.Play();
+            AppendLogs("bitmapSmall is not found in bitmapBig");
+            return false;
+        }
+    }
+
+    public static Point FindBitmapSmallPosition(Bitmap bitmapBig, Bitmap bitmapSmall)
+    {
+        // Check if bitmapSmall is smaller than bitmapBig
+        if (bitmapSmall.Width > bitmapBig.Width || bitmapSmall.Height > bitmapBig.Height)
+        {
+            throw new ArgumentException("bitmapSmall must be smaller than bitmapBig");
+        }
+
+        // Iterate through each pixel of bitmapBig
+        for (int x = 0; x < bitmapBig.Width - bitmapSmall.Width; x++)
+        {
+            for (int y = 0; y < bitmapBig.Height - bitmapSmall.Height; y++)
+            {
+                // Check if the current pixel in bitmapBig matches the corresponding pixel in bitmapSmall
+                bool matches = true;
+                for (int i = 0; i < bitmapSmall.Width; i++)
+                {
+                    for (int j = 0; j < bitmapSmall.Height; j++)
+                    {
+                        Color pixelBig = bitmapBig.GetPixel(x + i, y + j);
+                        Color pixelSmall = bitmapSmall.GetPixel(i, j);
+
+                        if (pixelBig != pixelSmall)
+                        {
+                            matches = false;
+                            break;
+                        }
+                    }
+
+                    if (!matches)
+                    {
+                        break;
+                    }
+                }
+
+                // If all pixels match, then bitmapSmall is found at the current position
+                if (matches)
+                {
+                    return new Point(x, y);
+                }
+            }
+        }
+        // If bitmapSmall is not found, return (-1, -1)
+        return new Point(-1, -1);
+    }
+
+
+    private static int convertSecondToMilisecond(decimal seconds)
+    {
+        // TimeSpan.FromSeconds(seconds);
+        int milliseconds = (int)(seconds * 1000);
+        return milliseconds;
+    }
+
+    public static Point GetRandomPointInRectangle(Rectangle rectangle)
+    {
+        Random random = new Random();
+        int x = random.Next(rectangle.Left, rectangle.Right);
+        int y = random.Next(rectangle.Top, rectangle.Bottom);
+
+        Point randomPoint = new Point(x, y);
+        return randomPoint;
+    }
+
+    private int timerMilisecCountForStepProcess = 0;
+    private int msWaitRecheck = 0;
+    private int round  = 0;
+    private int processNumber = 0;
+    public bool IsStart = false;
+    private int roundRecheck = 0;
+    private int numRoundNumber = 1000;
+    private int TIME_INTERVAL_IN_MILLISECONDS = 100;
+    private Timer cursorTimer;
+    private Rectangle captureAreaFound;
+    private async void OnStopLoop(string Message)
+    {
+        if (cursorTimer == null)
+        {
+            return;
+        }
+        cursorTimer.Dispose();
+        cursorTimer = null;
+
+
+        AppendLogs(Message);
+        await JsRuntime.InvokeVoidAsync("alert", Message);
+
+
+        int plusRound = 3;
+        var ranNewRound = (int)numRoundNumber + RandomIntBetween(-3, plusRound);
+        while (ranNewRound < 5 || ranNewRound > 1000)
+        {
+            plusRound++;
+            ranNewRound = (int)numRoundNumber + RandomIntBetween(-3, plusRound);
+        }
+        int minRound = -3;
+        while (ranNewRound > 1000)
+        {
+            minRound--;
+            ranNewRound = (int)numRoundNumber + RandomIntBetween(minRound, 3);
+        }
+        numRoundNumber = ranNewRound;
+
+
+        round = 0;
+        IsStart = false;
+        processNumber = 0;
+        roundRecheck = 0;
+        timerMilisecCountForStepProcess = msWaitRecheck = 0;
+    }
+    public int RandomIntBetween(int minValue, int maxValue)
+    {
+        if (minValue > maxValue)
+        {
+            throw new ArgumentException("minValue cannot be greater than maxValue");
+        }
+
+        Random random = new Random();
+        return random.Next(minValue, maxValue + 1);
+    }
+
+
+    private string ChangeRowColor(int currentRow)
+    {
+        return "";
+        if (currentRow == processNumber)
+        {
+            return "background:lightgreen";
+        }
+        else
+        {
+            return "";
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    public int posX = 90;
+    public int posY = 90;
+
+    private void Capture()
+    {
+        ShowImage();
+    }
+    private void Click()
+    {
+        GetImagePath("01", "01");
+    }
+    private string? imageSource;
+
+    private void ShowImage()
+    {
+        imageSource = Base64StringToImage(Convert.ToBase64String(CaptureScreenByte()));
+    }
+    private byte[] CaptureScreenByte()
+    {
+        using (Bitmap bitmap = new Bitmap(600, 600))
+        {
+            using (Graphics graphics = Graphics.FromImage(bitmap))
+            {
+                graphics.CopyFromScreen(Point.Empty, Point.Empty, bitmap.Size);
+            }
+            Point index = new Point(posX, posY);
+            //DrawCircl(index, bitmap, 10);
+            DrawRectangle(bitmap, index, new Size { Height = 20, Width = 50 });
+            using (var stream = new MemoryStream())
+            {
+                bitmap.Save(stream, System.Drawing.Imaging.ImageFormat.Png);
+                return stream.ToArray();
+            }
+        }
+    }
+    public void DrawCircl(Point index, Bitmap img, int Radius)
+    {
+        for (int i = 0; i < 360; i++)
+        {
+            double x = index.X - Radius * Math.Cos(2 * Math.PI / 360 * i);
+            double y = index.Y - Radius * Math.Sin(2 * Math.PI / 360 * i);
+            img.SetPixel((int)x, (int)y, Color.Red);
+        }
+    }
+
+    public void DrawRectangle(Bitmap img, Point index, Size recSize)
+    {
+        System.Drawing.Rectangle rect = new System.Drawing.Rectangle(index, recSize);
+        Color customColor = Color.FromArgb(50, Color.Red);
+        Brush _shadowBrush = new SolidBrush(Color.FromKnownColor(KnownColor.Red));
+        Pen shadowBrush = new Pen(_shadowBrush, 3);
+        using (Graphics g = Graphics.FromImage(img))
+        {
+            g.DrawRectangle(shadowBrush, rect.X, rect.Y, rect.Width, rect.Height);
+        }
+    }
+    private string GetImagePath(string saveName, string process)
+    {
+        string path = hostEnvironment.WebRootPath + @"\image\{saveName}_{process}.png";
+
+        var dirImage = Path.Combine(hostEnvironment.WebRootPath, "image");
+        if (Directory.Exists(dirImage) == false)
+        {
+            Directory.CreateDirectory(dirImage);
+        }
+        if (!File.Exists(path))
+        {
+            return "";
+        }
+        return path;
+    }
+}
