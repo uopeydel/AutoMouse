@@ -1,24 +1,25 @@
-using AutoCursorMoveStep.Models;
+﻿using AutoCursorMoveStep.Models;
 using AutoCursorMoveStep.Service;
-using System.Diagnostics;
-using System.Runtime.InteropServices;
-using System.Windows.Forms;
-using System.Data.SQLite;
+using Newtonsoft.Json;
+using System;
 using System.Data;
-using static AutoCursorMoveStep.Service.MouseOperationsService;
-using System.Text;
-using Timer = System.Windows.Forms.Timer;
-using System.Media;
+using System.Data.Entity.Core.Common.CommandTrees.ExpressionBuilder;
+using System.Data.SQLite;
+using System.Diagnostics;
+using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Media;
 using System.Reflection.Metadata;
-using System.Text.Json.Serialization;
-using Newtonsoft.Json;
-using System.Data.Entity.Core.Common.CommandTrees.ExpressionBuilder;
+using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics.X86;
-using System;
-using System.Drawing;
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.Json.Serialization;
 using System.Windows.Forms;
+using System.Windows.Forms;
+using static AutoCursorMoveStep.Service.MouseOperationsService;
+using Timer = System.Windows.Forms.Timer;
 
 
 namespace AutoCursorMoveStep
@@ -41,9 +42,11 @@ namespace AutoCursorMoveStep
 
 		// Hook handle
 		private IntPtr hookId = IntPtr.Zero;
+		private IntPtr _keyboardHookID = IntPtr.Zero;
+		private IntPtr _mouseHookID = IntPtr.Zero;
 
 		// Declare the hook callback as a class member to prevent it from being garbage collected
-		private LowLevelKeyboardProc hookCallback;
+		private LowLevelKeyboardProc _FirstHookCallback;
 
 		// Import the necessary functions from user32.dll
 		[DllImport("user32.dll", SetLastError = true)]
@@ -62,15 +65,15 @@ namespace AutoCursorMoveStep
 
 		private IntPtr SetHook(LowLevelKeyboardProc proc)
 		{
-			using (Process curProcess = Process.GetCurrentProcess())
-			using (ProcessModule curModule = curProcess.MainModule)
-			{
-				return SetWindowsHookEx(WH_KEYBOARD_LL, proc, GetModuleHandle(curModule.ModuleName), 0);
-			}
+			using Process curProcess = Process.GetCurrentProcess();
+			using ProcessModule curModule = curProcess.MainModule;
+
+			return SetWindowsHookEx(WH_KEYBOARD_LL, proc, GetModuleHandle(curModule.ModuleName), 0);
+
 		}
 
-
-
+		const int WM_LBUTTONDOWN = 0x0201;
+		bool isCtrlPressed = false;
 		private IntPtr HookCallback(int nCode, IntPtr wParam, IntPtr lParam)
 		{
 			if (nCode >= 0 && wParam == (IntPtr)WM_KEYDOWN)
@@ -101,13 +104,55 @@ namespace AutoCursorMoveStep
 
 				if (vkCode == VK_SPACE)
 				{
-					MessageBox.Show($"X {Cursor.Position.X} :  Y{Cursor.Position.Y}  ");
+					var location = $"X {Cursor.Position.X} :  Y{Cursor.Position.Y}  ";
+
+					MessageBox.Show(location);
+					Clipboard.SetText(location);
+
+					var lastCenContentClick = (GVHeaderPosition)gvAutoList.CurrentCell.ColumnIndex;
+					int rowClicked = gvAutoList.CurrentCell.RowIndex;
+
+					var lastRowContentClick = rowClicked;
+
+					if (lastRowContentClick >= 0 &&
+						(lastCenContentClick == GVHeaderPosition.TopLeftX || lastCenContentClick == GVHeaderPosition.TopLeftY))
+					{
+						gvAutoList.Rows[lastRowContentClick]
+							.Cells[(int)GVHeaderPosition.TopLeftX].Value =
+							Cursor.Position.X;
+
+						gvAutoList.Rows[lastRowContentClick]
+							.Cells[(int)GVHeaderPosition.TopLeftY].Value =
+							Cursor.Position.Y;
+					}
+
+
+					if (lastRowContentClick >= 0 &&
+						(lastCenContentClick == GVHeaderPosition.BotRightX || lastCenContentClick == GVHeaderPosition.BotRightY))
+					{
+						gvAutoList.Rows[lastRowContentClick]
+							.Cells[(int)GVHeaderPosition.BotRightX].Value =
+							Cursor.Position.X;
+
+						gvAutoList.Rows[lastRowContentClick]
+							.Cells[(int)GVHeaderPosition.BotRightY].Value =
+							Cursor.Position.Y;
+					}
 
 				}
 
+				if (vkCode == 0x11) // Ctrl
+				{
+					if (wParam == (IntPtr)0x0100) // KEYDOWN
+						isCtrlPressed = true;
+					else if (wParam == (IntPtr)0x0101) // KEYUP
+						isCtrlPressed = false;
+				}
 			}
 			return CallNextHookEx(hookId, nCode, wParam, lParam);
 		}
+
+
 		#endregion
 
 
@@ -130,11 +175,11 @@ namespace AutoCursorMoveStep
 
 			#region Hook
 
-			hookCallback = HookCallback;
+			_FirstHookCallback = HookCallback;
 			if (chkHookSpacePosition.Checked == true)
 			{
 				// Start the keyboard hook
-				hookId = SetHook(hookCallback);
+				hookId = SetHook(_FirstHookCallback);
 			}
 			#endregion
 
@@ -185,8 +230,12 @@ namespace AutoCursorMoveStep
 			}
 			return Path.Combine(dirImage, filePath);
 		}
+
 		private void gvAutoList_CellContentClick(object sender, DataGridViewCellEventArgs e)
 		{
+
+
+
 
 			// Check if the clicked cell is a button cell
 			if (e.ColumnIndex == (int)GVHeaderPosition.Fetch)
@@ -235,6 +284,24 @@ namespace AutoCursorMoveStep
 				}
 				IsEqual(e.RowIndex);
 
+			}
+
+			if (e.ColumnIndex == (int)GVHeaderPosition.ReCheck)
+			{
+
+				var image = (Bitmap)gvAutoList.Rows[e.RowIndex].Cells[(int)GVHeaderPosition.ReCheck].Value;
+				Form form = new Form();
+				PictureBox pb = new PictureBox();
+
+				pb.Image = image;
+				pb.SizeMode = PictureBoxSizeMode.Zoom;
+				pb.Dock = DockStyle.Fill;
+
+				form.Controls.Add(pb);
+				form.Width = 400;
+				form.Height = 400;
+
+				form.ShowDialog();
 			}
 		}
 
@@ -296,7 +363,7 @@ namespace AutoCursorMoveStep
 			{
 				var bm1 = (Bitmap)v1;
 				var bm2 = (Bitmap)v2;
-				result = ImageComparer.IsLikely(bm1, bm2);
+				result = ImageComparer.IsLikely(bm1, bm2, AppendLogs);
 				gvAutoList.Rows[gvRowIndex].Cells[(int)GVHeaderPosition.Equal].Value = result ? "Equal" : "Diff";
 			}
 			return result;
@@ -408,9 +475,11 @@ namespace AutoCursorMoveStep
 
 
 
+		private static Bitmap _croppedBitmapForFource1;
+		private static Bitmap _croppedBitmapForFource2;
 		private static Bitmap _croppedBitmap;
 		private static Bitmap _bmSmall;
-		private void CaptureScreen(Rectangle captureArea)
+		private void CaptureScreen(Rectangle captureArea , int fource = 0)
 		{
 			int screenCaptureWidth = (int)Screen.PrimaryScreen.Bounds.Width;
 			screenCaptureWidth = 600;
@@ -423,7 +492,20 @@ namespace AutoCursorMoveStep
 				}
 				//Bitmap croppedBitmap = bitmap.Clone(captureArea, bitmap.PixelFormat);
 				//result = croppedBitmap; 
-				_croppedBitmap = CropBitmap(bitmap, captureArea);
+				if (fource == 0)
+				{
+					_croppedBitmap = CropBitmap(bitmap, captureArea);
+				}
+				
+				if(fource == 1)
+				{
+					_croppedBitmapForFource1 = CropBitmap(bitmap, captureArea);
+				}
+				if (fource == 2)
+				{
+					_croppedBitmapForFource2 = CropBitmap(bitmap, captureArea);
+				}
+				
 			}
 			//return result;
 		}
@@ -504,6 +586,47 @@ namespace AutoCursorMoveStep
 				cursorTimer.Tick += (sender, e) => MouseClickAutoTimmer();
 				cursorTimer.Start();
 				//this.WindowState = FormWindowState.Minimized;
+
+				timer2ForFource = new Timer();
+				timer2ForFource.Interval = 100;
+				timer2ForFource.Tick += (sender, e) => TimeerForFource();
+				timer2ForFource.Start();
+			}
+		}
+		Timer timer2ForFource;
+		private void TimeerForFource()
+		{
+			try
+			{
+
+				if (processNumber == (int)stepFource1.Value)
+				{ return; }
+				var isFource1 = IsFource1ContainArea();
+				if (isFource1 == true)
+				{
+					processNumber = (int)stepFource1.Value;  // processNumber = 0;
+					ChangeRowColor(processNumber);
+
+					return;
+				}
+
+
+				if (processNumber == (int)stepFoure2.Value)
+				{ return; }
+				var isFource2 = IsFource2ContainArea();
+				if (isFource2 == true)
+				{
+					processNumber = (int)stepFoure2.Value;  // processNumber = 0;
+					ChangeRowColor(processNumber);
+					 
+					return;
+				}
+
+				
+			}
+			catch (Exception ex)
+			{
+				AppendLogs("TF:"+ex.Message);
 			}
 		}
 
@@ -516,6 +639,7 @@ namespace AutoCursorMoveStep
 		private void OnStopLoop(string Message)
 		{
 			cursorTimer.Stop();
+			timer2ForFource.Stop();
 			AppendLogs(Message);
 
 			round = 0;
@@ -868,9 +992,9 @@ VALUES (@TopLeftX, @TopLeftY, @BotRightX, @BotRightY, @Interval, @Active , @Allo
 				}
 
 				int limitRoundCheck = processNumber <= 5 ? 5 : 10;
-				limitRoundCheck = 10;
+				limitRoundCheck = 3;
 
-                if (roundRecheck > limitRoundCheck)
+				if (roundRecheck > limitRoundCheck)
 				{
 					// When unable to check image we can fix loop by skip step if combobox select value to exist step
 					if (gvDatas[processNumber].SkipToStepIfImageNotFound > -1 && gvDatas[processNumber].SkipToStepIfImageNotFound < gvDatas.Count())
@@ -900,6 +1024,11 @@ VALUES (@TopLeftX, @TopLeftY, @BotRightX, @BotRightY, @Interval, @Active , @Allo
 					//Continue waiting round recheck
 					return;
 				}
+
+
+
+				
+
 
 				Point mousePoint;
 
@@ -934,6 +1063,7 @@ VALUES (@TopLeftX, @TopLeftY, @BotRightX, @BotRightY, @Interval, @Active , @Allo
 			}
 			catch (Exception ex)
 			{
+				timer2ForFource.Stop();
 				cursorTimer.Stop();
 				AppendLogs($"ex {ex.Message}");
 				MessageBox.Show($"ex {ex.Message}");
@@ -970,6 +1100,7 @@ VALUES (@TopLeftX, @TopLeftY, @BotRightX, @BotRightY, @Interval, @Active , @Allo
 
 		public static void MaximizeTargetWindows(List<string> targetAppNames)
 		{
+			return;
 			// Get all top-level windows
 			Process[] processes = Process.GetProcesses();
 			foreach (Process process in processes)
@@ -1017,16 +1148,66 @@ VALUES (@TopLeftX, @TopLeftY, @BotRightX, @BotRightY, @Interval, @Active , @Allo
 				CaptureScreen(captureAreaFound);
 				gvAutoList.Rows[processNumber].Cells[(int)GVHeaderPosition.Position].Value = _croppedBitmap;
 
-
-				var IsLikely = ImageComparer.IsLikely(_bmSmall, _croppedBitmap);
+				//ตรวจใน step
+				var IsLikely = ImageComparer.IsLikely(_bmSmall, _croppedBitmap, AppendLogs);
 				if (IsLikely)
 				{
 					return true;
 				}
+
 				//  SystemSounds.Question.Play();
 				AppendLogs("bitmapSmall is not found in bitmapBig");
 				return false;
 			}
+		}
+
+		private bool? IsFource1ContainArea()
+		{
+			var wid = (int)(botrx1.Value - toplx1.Value);
+			var hei = (int)(botry1.Value - toply1.Value);
+			if (wid < 10 || hei < 10)
+			{
+				return false;
+			}
+			if(pictureBox1.Image == null)
+			{
+				return false;
+			}
+
+			Rectangle captureArea = new Rectangle((int)toplx1.Value, (int)toply1.Value, wid, hei);
+			CaptureScreen(captureArea,1);
+			 
+			var IsLikely1 = ImageComparer.IsLikely((Bitmap)pictureBox1.Image, _croppedBitmapForFource1, AppendLogs , 1);
+			if (IsLikely1)
+			{
+				return true;
+			}
+			return false;
+		}
+
+
+		private bool? IsFource2ContainArea()
+		{
+			var wid = (int)(botrx2.Value - toplx2.Value);
+			var hei = (int)(botry2.Value - toply2.Value);
+			if (wid < 10 || hei < 10)
+			{
+				return false;
+			}
+			if (pictureBox2.Image == null)
+			{
+				return false;
+			}
+
+			Rectangle captureArea = new Rectangle((int)toplx2.Value, (int)toply2.Value, wid, hei);
+			CaptureScreen(captureArea,2);
+
+			var IsLikely2 = ImageComparer.IsLikely((Bitmap)pictureBox2.Image, _croppedBitmapForFource2, AppendLogs, 2);
+			if (IsLikely2)
+			{
+				return true;
+			}
+			return false;
 		}
 
 		public static Point FindBitmapSmallPosition(Bitmap bitmapBig, Bitmap bitmapSmall)
@@ -1111,12 +1292,13 @@ VALUES (@TopLeftX, @TopLeftY, @BotRightX, @BotRightY, @Interval, @Active , @Allo
 			if (chkHookSpacePosition.Checked == true)
 			{
 				// Start the keyboard hook
-				hookId = SetHook(hookCallback);
+				hookId = SetHook(_FirstHookCallback);
 			}
 			else
 			{
 				// Stop the keyboard hook
 				UnhookWindowsHookEx(hookId);
+
 			}
 		}
 
@@ -1125,6 +1307,72 @@ VALUES (@TopLeftX, @TopLeftY, @BotRightX, @BotRightY, @Interval, @Active , @Allo
 
 		}
 
+		private void label1_Click(object sender, EventArgs e)
+		{
 
+		}
+
+		private void pictureBox1_Click(object sender, EventArgs e)
+		{
+			var wid = (int)(botrx1.Value - toplx1.Value);
+			var hei = (int)(botry1.Value - toply1.Value);
+			if (wid < 10 || hei < 10)
+			{
+				return;
+			}
+
+			Rectangle captureArea = new Rectangle((int)toplx1.Value, (int)toply1.Value, wid, hei);
+			CaptureScreen(captureArea,1);
+			//DataGridViewImageColumn imageCol = new DataGridViewImageColumn(); 
+			pictureBox1.Image = _croppedBitmapForFource1; 
+			var imageFilePath = GetImagePath($"fource1.png");
+			SaveBitmapToPath(imageFilePath, _croppedBitmapForFource1);
+
+
+
+			Form form = new Form();
+			PictureBox pb = new PictureBox();
+
+			pb.Image = pictureBox1.Image;
+			pb.SizeMode = PictureBoxSizeMode.Zoom;
+			pb.Dock = DockStyle.Fill;
+
+			form.Controls.Add(pb);
+			form.Width = 400;
+			form.Height = 400;
+
+			form.ShowDialog();
+		}
+
+		private void pictureBox2_Click(object sender, EventArgs e)
+		{
+
+			var wid = (int)(botrx2.Value - toplx2.Value);
+			var hei = (int)(botry2.Value - toply2.Value);
+			if (wid < 10 || hei < 10)
+			{
+				return;
+			}
+
+			Rectangle captureArea = new Rectangle((int)toplx2.Value, (int)toply2.Value, wid, hei);
+			CaptureScreen(captureArea,2); 
+			pictureBox2.Image = _croppedBitmapForFource2;
+			var imageFilePath = GetImagePath($"fource2.png");
+			SaveBitmapToPath(imageFilePath, _croppedBitmapForFource2);
+
+
+			Form form = new Form();
+			PictureBox pb = new PictureBox();
+
+			pb.Image = pictureBox2.Image;
+			pb.SizeMode = PictureBoxSizeMode.Zoom;
+			pb.Dock = DockStyle.Fill;
+
+			form.Controls.Add(pb);
+			form.Width = 400;
+			form.Height = 400;
+
+			form.ShowDialog();
+		}
 	}
 }

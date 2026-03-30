@@ -1,0 +1,64 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!--Project was exported from assembly: D:\Code\Git\AutoMouse\keysim\WimKeySim\WimKeySim\bin\Debug\net6.0-windows\InputInterceptor.dll-->
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{019647AD-4CF6-4D5C-9E20-C3FF7A1CF2A5}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AssemblyName>InputInterceptor</AssemblyName>
+    <ApplicationVersion>1.0.0.0</ApplicationVersion>
+    <RootNamespace>InputInterceptorNS</RootNamespace>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="netstandard" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="DeviceData.cs" />
+    <Compile Include="KeyCode.cs" />
+    <Compile Include="KeyState.cs" />
+    <Compile Include="KeyboardFilter.cs" />
+    <Compile Include="MouseState.cs" />
+    <Compile Include="MouseFilter.cs" />
+    <Compile Include="MouseFlags.cs" />
+    <Compile Include="Hook`1.cs" />
+    <Compile Include="KeyStroke.cs" />
+    <Compile Include="MouseStroke.cs" />
+    <Compile Include="Stroke.cs" />
+    <Compile Include="Win32Point.cs" />
+    <Compile Include="DllWrapper.cs" />
+    <Compile Include="Helpers.cs" />
+    <Compile Include="InputInterceptor.cs" />
+    <Compile Include="Predicate.cs" />
+    <Compile Include="InterceptionMethods.cs" />
+    <Compile Include="KeyboardHook.cs" />
+    <Compile Include="MouseHook.cs" />
+    <Compile Include="NativeMethods.cs" />
+    <Compile Include="AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\install-interception.exe" />
+    <EmbeddedResource Include="Resources\interception_x64.dll" />
+    <EmbeddedResource Include="Resources\interception_x86.dll" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+</Project>

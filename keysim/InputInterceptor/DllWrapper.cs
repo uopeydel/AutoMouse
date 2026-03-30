@@ -1,0 +1,71 @@
+﻿// Decompiled with JetBrains decompiler
+// Type: InputInterceptorNS.DllWrapper
+// Assembly: InputInterceptor, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
+// MVID: 604977C5-2ADE-4FC3-BFE8-4BBC3D0D606F
+// Assembly location: D:\Code\Git\AutoMouse\keysim\WimKeySim\WimKeySim\bin\Debug\net6.0-windows\InputInterceptor.dll
+
+using System;
+using System.IO;
+using System.Runtime.InteropServices;
+
+#nullable disable
+namespace InputInterceptorNS;
+
+internal class DllWrapper : IDisposable
+{
+  private readonly string DllTempName;
+  private readonly IntPtr DllPointer;
+  public readonly InterceptionMethods.CreateContext CreateContext;
+  public readonly InterceptionMethods.DestroyContext DestroyContext;
+  public readonly InterceptionMethods.GetPrecedence GetPrecedence;
+  public readonly InterceptionMethods.SetPrecedence SetPrecedence;
+  public readonly InterceptionMethods.GetFilter GetFilter;
+  public readonly InterceptionMethods.SetFilter SetFilter;
+  public readonly InterceptionMethods.Wait Wait;
+  public readonly InterceptionMethods.WaitWithTimeout WaitWithTimeout;
+  public readonly InterceptionMethods.Send Send;
+  public readonly InterceptionMethods.Receive Receive;
+  public readonly InterceptionMethods.GetHardwareId GetHardwareId;
+  public readonly InterceptionMethods.IsInvalid IsInvalid;
+  public readonly InterceptionMethods.IsKeyboard IsKeyboard;
+  public readonly InterceptionMethods.IsMouse IsMouse;
+  public bool Disposed;
+
+  public DllWrapper(byte[] DllBytes)
+  {
+    this.DllTempName = Path.GetTempFileName();
+    File.WriteAllBytes(this.DllTempName, DllBytes);
+    this.DllPointer = NativeMethods.LoadLibrary(this.DllTempName);
+    this.CreateContext = this.GetFunction<InterceptionMethods.CreateContext>("interception_create_context");
+    this.DestroyContext = this.GetFunction<InterceptionMethods.DestroyContext>("interception_destroy_context");
+    this.GetPrecedence = this.GetFunction<InterceptionMethods.GetPrecedence>("interception_get_precedence");
+    this.SetPrecedence = this.GetFunction<InterceptionMethods.SetPrecedence>("interception_set_precedence");
+    this.GetFilter = this.GetFunction<InterceptionMethods.GetFilter>("interception_get_filter");
+    this.SetFilter = this.GetFunction<InterceptionMethods.SetFilter>("interception_set_filter");
+    this.Wait = this.GetFunction<InterceptionMethods.Wait>("interception_wait");
+    this.WaitWithTimeout = this.GetFunction<InterceptionMethods.WaitWithTimeout>("interception_wait_with_timeout");
+    this.Send = this.GetFunction<InterceptionMethods.Send>("interception_send");
+    this.Receive = this.GetFunction<InterceptionMethods.Receive>("interception_receive");
+    this.GetHardwareId = this.GetFunction<InterceptionMethods.GetHardwareId>("interception_get_hardware_id");
+    this.IsInvalid = this.GetFunction<InterceptionMethods.IsInvalid>("interception_is_invalid");
+    this.IsKeyboard = this.GetFunction<InterceptionMethods.IsKeyboard>("interception_is_keyboard");
+    this.IsMouse = this.GetFunction<InterceptionMethods.IsMouse>("interception_is_mouse");
+    this.Disposed = false;
+  }
+
+  ~DllWrapper() => this.Dispose();
+
+  public void Dispose()
+  {
+    if (this.Disposed)
+      return;
+    NativeMethods.FreeLibrary(this.DllPointer);
+    File.Delete(this.DllTempName);
+    this.Disposed = true;
+  }
+
+  private TDelegate GetFunction<TDelegate>(string procedureName)
+  {
+    return Marshal.GetDelegateForFunctionPointer<TDelegate>(NativeMethods.GetProcAddress(this.DllPointer, procedureName));
+  }
+}
