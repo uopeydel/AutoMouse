@@ -635,8 +635,8 @@ namespace AutoCursorMoveStep
 				if (isFource1 == true)
 				{
 					processNumber = 0;  // processNumber = 0;
-					round = round--;
-
+					round--;
+					 
 					//roundRecheck = 0;
 					timerMilisecCountForStepProcess = msWaitRecheck = 0;
 					ChangeRowColor(processNumber);
