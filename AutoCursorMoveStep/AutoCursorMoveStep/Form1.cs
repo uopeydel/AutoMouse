@@ -217,6 +217,25 @@ namespace AutoCursorMoveStep
 			// Show the message box
 			#endregion
 
+
+			#region LoadImageFource
+			var imageFilePath = GetImagePath($"fource1.png");
+			if (File.Exists(imageFilePath))
+			{
+				using var stream = new FileStream(imageFilePath, FileMode.Open, FileAccess.Read);
+				var imageFile = Image.FromStream(stream);
+				pictureBox1.Image = (Bitmap)imageFile;
+			}
+
+			var imageFilePath2 = GetImagePath($"fource2.png");
+			if (File.Exists(imageFilePath2))
+			{
+				using var stream2 = new FileStream(imageFilePath2, FileMode.Open, FileAccess.Read);
+				var imageFile2 = Image.FromStream(stream2);
+				pictureBox2.Image = (Bitmap)imageFile2;
+			}
+
+			#endregion
 		}
 
 		private string GetImagePath(string filePath)
@@ -892,6 +911,9 @@ VALUES (@TopLeftX, @TopLeftY, @BotRightX, @BotRightY, @SkipToStepIfImageFound )"
 		{
 			try
 			{
+				
+
+
 				var tableNamee = $"SaveFourceSkip{index}";
 				connection = new SQLiteConnection("Data Source=MyDatabase.db");
 
