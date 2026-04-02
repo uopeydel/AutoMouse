@@ -19,6 +19,7 @@ using System.Text.Json.Serialization;
 using System.Windows.Forms;
 using System.Windows.Forms;
 using static AutoCursorMoveStep.Service.MouseOperationsService;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.TrackBar;
 using Timer = System.Windows.Forms.Timer;
 
 
@@ -173,6 +174,14 @@ namespace AutoCursorMoveStep
 			InitializeComponent();
 			AppendLogs("Start");
 
+#if DEBUG
+			toplx1.Value = 220;
+			toply1.Value = 330;
+
+			botrx1.Value = 360;
+			botry1.Value = 360;
+			stepFource1.Value = 4;
+#endif
 			#region Hook
 
 			_FirstHookCallback = HookCallback;
@@ -191,7 +200,7 @@ namespace AutoCursorMoveStep
 			AppendLogs($"Load");
 
 			cbSaveType.SelectedIndex = 0;
-
+			LoadFource(1);
 			LoadToGv();
 
 			#region Message box option
@@ -479,7 +488,7 @@ namespace AutoCursorMoveStep
 		private static Bitmap _croppedBitmapForFource2;
 		private static Bitmap _croppedBitmap;
 		private static Bitmap _bmSmall;
-		private void CaptureScreen(Rectangle captureArea , int fource = 0)
+		private void CaptureScreen(Rectangle captureArea, int fource = 0)
 		{
 			int screenCaptureWidth = (int)Screen.PrimaryScreen.Bounds.Width;
 			screenCaptureWidth = 600;
@@ -496,8 +505,8 @@ namespace AutoCursorMoveStep
 				{
 					_croppedBitmap = CropBitmap(bitmap, captureArea);
 				}
-				
-				if(fource == 1)
+
+				if (fource == 1)
 				{
 					_croppedBitmapForFource1 = CropBitmap(bitmap, captureArea);
 				}
@@ -505,7 +514,7 @@ namespace AutoCursorMoveStep
 				{
 					_croppedBitmapForFource2 = CropBitmap(bitmap, captureArea);
 				}
-				
+
 			}
 			//return result;
 		}
@@ -583,50 +592,77 @@ namespace AutoCursorMoveStep
 				IsStart = true;
 				cursorTimer = new Timer();
 				cursorTimer.Interval = 100;
-				cursorTimer.Tick += (sender, e) => MouseClickAutoTimmer();
+				//cursorTimer.Tick += (sender, e) => MouseClickAutoTimmer();
+				cursorTimer.Tick += (s, e) =>
+				{
+					TimeerForFource();
+					MouseClickAutoTimmer();
+
+				};
 				cursorTimer.Start();
 				//this.WindowState = FormWindowState.Minimized;
 
-				timer2ForFource = new Timer();
-				timer2ForFource.Interval = 100;
-				timer2ForFource.Tick += (sender, e) => TimeerForFource();
-				timer2ForFource.Start();
+				//timer2ForFource = new Timer();
+				//timer2ForFource.Interval = 100;
+				//timer2ForFource.Tick += (sender, e) => TimeerForFource();
+				//timer2ForFource.Start();
 			}
 		}
-		Timer timer2ForFource;
+		////Timer timer2ForFource;
+		//int roundCheckMax = 20;
+		int rouncFourceCheck = 0;
 		private void TimeerForFource()
 		{
 			try
 			{
 
-				if (processNumber == (int)stepFource1.Value)
-				{ return; }
+				if (!(processNumber == (int)stepFource1.Value))// || processNumber == (int)stepFoure2.Value))
+				{
+					//AppendLogs("- processNumber:" + processNumber);
+					return;
+				}
+
+				//AppendLogs("+ processNumber:" + processNumber);
+				//rouncFourceCheck++;
+				//if (rouncFourceCheck > roundCheckMax)
+				//{
+				//	return;
+				//}
+
 				var isFource1 = IsFource1ContainArea();
+
+				//AppendLogs("isFource1:" + isFource1);
 				if (isFource1 == true)
 				{
-					processNumber = (int)stepFource1.Value;  // processNumber = 0;
+					processNumber = 0;  // processNumber = 0;
+					round = round--;
+
+					//roundRecheck = 0;
+					timerMilisecCountForStepProcess = msWaitRecheck = 0;
 					ChangeRowColor(processNumber);
 
 					return;
 				}
+				return;
 
-
-				if (processNumber == (int)stepFoure2.Value)
-				{ return; }
 				var isFource2 = IsFource2ContainArea();
+
+				AppendLogs("isFource2:" + isFource2);
 				if (isFource2 == true)
 				{
-					processNumber = (int)stepFoure2.Value;  // processNumber = 0;
+					processNumber = 0;  // processNumber = 0;
+					round--;
+					roundRecheck = 0;
 					ChangeRowColor(processNumber);
-					 
+
 					return;
 				}
 
-				
+
 			}
 			catch (Exception ex)
 			{
-				AppendLogs("TF:"+ex.Message);
+				AppendLogs("TF:" + ex.Message);
 			}
 		}
 
@@ -639,7 +675,7 @@ namespace AutoCursorMoveStep
 		private void OnStopLoop(string Message)
 		{
 			cursorTimer.Stop();
-			timer2ForFource.Stop();
+			//timer2ForFource.Stop();
 			AppendLogs(Message);
 
 			round = 0;
@@ -769,6 +805,72 @@ VALUES (@TopLeftX, @TopLeftY, @BotRightX, @BotRightY, @Interval, @Active , @Allo
 
 			}
 		}
+
+		private void SaveFourceSkip(int index)
+		{
+
+			try
+			{
+				var tableNamee = $"SaveFourceSkip{cbSaveType.SelectedIndex}";
+				connection = new SQLiteConnection("Data Source=MyDatabase.db");
+
+				// Open the connection to the SQLite database
+				connection.Open();
+
+
+				// DROP a   table in the SQLite database
+				string dropTableQuery = $"DROP TABLE IF EXISTS {tableNamee}";
+				using (SQLiteCommand command = new SQLiteCommand(dropTableQuery, connection))
+				{
+					command.ExecuteNonQuery();
+				}
+
+				// Create a new table in the SQLite database
+				string createTableQuery = $@"CREATE TABLE IF NOT EXISTS {tableNamee} 
+(
+TopLeftX DECIMAL(18,2), 
+TopLeftY DECIMAL(18,2), 
+BotRightX DECIMAL(18,2), 
+BotRightY DECIMAL(18,2),  
+SkipToStepIfImageFound DECIMAL(18,2) )";
+				using (SQLiteCommand command = new SQLiteCommand(createTableQuery, connection))
+				{
+					command.ExecuteNonQuery();
+				}
+				ReadGV();
+				// Insert some data into the SQLite database
+				string insertDataQuery = $@"
+INSERT INTO {tableNamee} (TopLeftX, TopLeftY, BotRightX, BotRightY, SkipToStepIfImageFound ) 
+VALUES (@TopLeftX, @TopLeftY, @BotRightX, @BotRightY, @SkipToStepIfImageFound )";
+				using (SQLiteCommand command = new SQLiteCommand(insertDataQuery, connection))
+				{
+
+					//toplx1.Value = 220;
+					//toply1.Value = 330;
+
+					//botrx1.Value = 360;
+					//botry1.Value = 360;
+					//stepFource1.Value = 4;
+
+					command.Parameters.AddWithValue("@TopLeftX", toplx1.Value);
+					command.Parameters.AddWithValue("@TopLeftY", toply1.Value);
+					command.Parameters.AddWithValue("@BotRightX", botrx1.Value);
+					command.Parameters.AddWithValue("@BotRightY", botry1.Value);
+					command.Parameters.AddWithValue("@SkipToStepIfImageFound", stepFource1.Value);
+
+					command.ExecuteNonQuery();
+
+
+				}
+				AppendLogs("save success" + cbSaveType?.SelectedItem?.ToString());
+			}
+			catch (Exception ex)
+			{
+				AppendLogs(ex.Message);
+			}
+
+
+		}
 		private void ClearSqlLite()
 		{
 			var tableNamee = $"ItemAuto{cbSaveType.SelectedIndex}";
@@ -782,6 +884,49 @@ VALUES (@TopLeftX, @TopLeftY, @BotRightX, @BotRightY, @Interval, @Active , @Allo
 			using (SQLiteCommand command = new SQLiteCommand(createTableQuery, connection))
 			{
 				command.ExecuteNonQuery();
+			}
+
+		}
+
+		private void LoadFource(int index)
+		{
+			try
+			{
+				var tableNamee = $"SaveFourceSkip{index}";
+				connection = new SQLiteConnection("Data Source=MyDatabase.db");
+
+				// Open the connection to the SQLite database
+				connection.Open();
+
+				// Load the data from the SQLite database into the DataGridView
+				string loadDataQuery = $"SELECT * FROM {tableNamee}";
+				using (SQLiteDataAdapter adapter = new SQLiteDataAdapter(loadDataQuery, connection))
+				{
+					//toplx1.Value = 220;
+					//toply1.Value = 330;
+
+					//botrx1.Value = 360;
+					//botry1.Value = 360;
+					//stepFource1.Value = 4;
+
+					DataSet dataSet = new DataSet();
+					adapter.Fill(dataSet);
+
+					var row = dataSet.Tables[0].Rows;
+					for (int i = 0; i < row.Count; i++)
+					{
+						toplx1.Value = row[i].Field<decimal?>("TopLeftX") ?? 0m;
+						toply1.Value = row[i].Field<decimal?>("TopLeftY") ?? 0m;
+						botrx1.Value = row[i].Field<decimal?>("BotRightX") ?? 0m;
+						botry1.Value = row[i].Field<decimal?>("BotRightY") ?? 0m;
+						stepFource1.Value = row[i].Field<decimal?>("SkipToStepIfImageFound") ?? 0m;
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+
+				AppendLogs(ex.Message);
 			}
 
 		}
@@ -906,12 +1051,13 @@ VALUES (@TopLeftX, @TopLeftY, @BotRightX, @BotRightY, @Interval, @Active , @Allo
 
 			AppendLogs($"Save");
 			Save();
+			SaveFourceSkip(1);
 		}
 
 		private void btnLoad_Click(object sender, EventArgs e)
 		{
 			AppendLogs($"Load");
-
+			LoadFource(1);
 			LoadToGv();
 		}
 
@@ -966,7 +1112,7 @@ VALUES (@TopLeftX, @TopLeftY, @BotRightX, @BotRightY, @Interval, @Active , @Allo
 
 				// AppendLogs($"Round = {round} : Process No = {processNumber} : IsStop = {MoveCursorService.isStop}");
 
-				//When to run until end of round process (line of gridview finish) then go to process 0 and run nest round
+				//When to run until end of round process (line of gridview finish) then go to process 0 and run next round
 				if (processNumber >= gvDatas.Count)
 				{
 
@@ -996,8 +1142,10 @@ VALUES (@TopLeftX, @TopLeftY, @BotRightX, @BotRightY, @Interval, @Active , @Allo
 
 				if (roundRecheck > limitRoundCheck)
 				{
+					var conditionNotFound = (gvDatas[processNumber].SkipToStepIfImageNotFound > -1 && gvDatas[processNumber].SkipToStepIfImageNotFound < gvDatas.Count());
+					AppendLogs($"{limitRoundCheck}/{roundRecheck} conNotFound :{conditionNotFound}");
 					// When unable to check image we can fix loop by skip step if combobox select value to exist step
-					if (gvDatas[processNumber].SkipToStepIfImageNotFound > -1 && gvDatas[processNumber].SkipToStepIfImageNotFound < gvDatas.Count())
+					if (conditionNotFound)
 					{
 						processNumber = (int)gvDatas[processNumber].SkipToStepIfImageNotFound;  // processNumber = 0;
 						ChangeRowColor(processNumber);
@@ -1006,6 +1154,7 @@ VALUES (@TopLeftX, @TopLeftY, @BotRightX, @BotRightY, @Interval, @Active , @Allo
 						roundRecheck = 0;
 						return;
 					}
+					AppendLogs($"{limitRoundCheck}/{roundRecheck} conNotFound :{conditionNotFound}");
 					OnStopLoop($"Unable to check image same = {processNumber} ");
 					if (DateTime.Now.Hour > 22)
 					{
@@ -1027,7 +1176,7 @@ VALUES (@TopLeftX, @TopLeftY, @BotRightX, @BotRightY, @Interval, @Active , @Allo
 
 
 
-				
+
 
 
 				Point mousePoint;
@@ -1063,7 +1212,7 @@ VALUES (@TopLeftX, @TopLeftY, @BotRightX, @BotRightY, @Interval, @Active , @Allo
 			}
 			catch (Exception ex)
 			{
-				timer2ForFource.Stop();
+				//timer2ForFource.Stop();
 				cursorTimer.Stop();
 				AppendLogs($"ex {ex.Message}");
 				MessageBox.Show($"ex {ex.Message}");
@@ -1169,15 +1318,15 @@ VALUES (@TopLeftX, @TopLeftY, @BotRightX, @BotRightY, @Interval, @Active , @Allo
 			{
 				return false;
 			}
-			if(pictureBox1.Image == null)
+			if (pictureBox1.Image == null)
 			{
 				return false;
 			}
 
 			Rectangle captureArea = new Rectangle((int)toplx1.Value, (int)toply1.Value, wid, hei);
-			CaptureScreen(captureArea,1);
-			 
-			var IsLikely1 = ImageComparer.IsLikely((Bitmap)pictureBox1.Image, _croppedBitmapForFource1, AppendLogs , 1);
+			CaptureScreen(captureArea, 1);
+
+			var IsLikely1 = ImageComparer.IsLikely((Bitmap)pictureBox1.Image, _croppedBitmapForFource1, AppendLogs, 1);
 			if (IsLikely1)
 			{
 				return true;
@@ -1200,7 +1349,7 @@ VALUES (@TopLeftX, @TopLeftY, @BotRightX, @BotRightY, @Interval, @Active , @Allo
 			}
 
 			Rectangle captureArea = new Rectangle((int)toplx2.Value, (int)toply2.Value, wid, hei);
-			CaptureScreen(captureArea,2);
+			CaptureScreen(captureArea, 2);
 
 			var IsLikely2 = ImageComparer.IsLikely((Bitmap)pictureBox2.Image, _croppedBitmapForFource2, AppendLogs, 2);
 			if (IsLikely2)
@@ -1322,9 +1471,9 @@ VALUES (@TopLeftX, @TopLeftY, @BotRightX, @BotRightY, @Interval, @Active , @Allo
 			}
 
 			Rectangle captureArea = new Rectangle((int)toplx1.Value, (int)toply1.Value, wid, hei);
-			CaptureScreen(captureArea,1);
+			CaptureScreen(captureArea, 1);
 			//DataGridViewImageColumn imageCol = new DataGridViewImageColumn(); 
-			pictureBox1.Image = _croppedBitmapForFource1; 
+			pictureBox1.Image = _croppedBitmapForFource1;
 			var imageFilePath = GetImagePath($"fource1.png");
 			SaveBitmapToPath(imageFilePath, _croppedBitmapForFource1);
 
@@ -1355,7 +1504,7 @@ VALUES (@TopLeftX, @TopLeftY, @BotRightX, @BotRightY, @Interval, @Active , @Allo
 			}
 
 			Rectangle captureArea = new Rectangle((int)toplx2.Value, (int)toply2.Value, wid, hei);
-			CaptureScreen(captureArea,2); 
+			CaptureScreen(captureArea, 2);
 			pictureBox2.Image = _croppedBitmapForFource2;
 			var imageFilePath = GetImagePath($"fource2.png");
 			SaveBitmapToPath(imageFilePath, _croppedBitmapForFource2);
