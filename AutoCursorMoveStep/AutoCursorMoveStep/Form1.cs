@@ -1142,6 +1142,8 @@ VALUES (@TopLeftX, @TopLeftY, @BotRightX, @BotRightY, @SkipToStepIfImageFound )"
 
 				if (roundRecheck > limitRoundCheck)
 				{
+					//ถ้าอยากให้มันวิ่งไปสเต็ปอื่นตอนหาไม่เจอ ตั้งที่คอลั่ม SkipToStepIfImageNotFound ให้ 0-...
+					//แต่ถ้าอยากปล่อยให้่มันหยุดได้ -1
 					var conditionNotFound = (gvDatas[processNumber].SkipToStepIfImageNotFound > -1 && gvDatas[processNumber].SkipToStepIfImageNotFound < gvDatas.Count());
 					AppendLogs($"{limitRoundCheck}/{roundRecheck} conNotFound :{conditionNotFound}");
 					// When unable to check image we can fix loop by skip step if combobox select value to exist step
@@ -1156,6 +1158,8 @@ VALUES (@TopLeftX, @TopLeftY, @BotRightX, @BotRightY, @SkipToStepIfImageFound )"
 					}
 					AppendLogs($"{limitRoundCheck}/{roundRecheck} conNotFound :{conditionNotFound}");
 					OnStopLoop($"Unable to check image same = {processNumber} ");
+
+					//ปิดเครื่องนอน วอจบแล้ว
 					if (DateTime.Now.Hour > 22)
 					{
 						//var psi = new ProcessStartInfo("shutdown", "/s /t 0");
@@ -1188,7 +1192,7 @@ VALUES (@TopLeftX, @TopLeftY, @BotRightX, @BotRightY, @SkipToStepIfImageFound )"
 					if (gvDatas[processNumber].SkipToStepIfImageNotFound == -1)
 					{
 						//MinimizeTargetWindows(chromes);
-						MaximizeTargetWindows(chromes);
+						//MaximizeTargetWindows(chromes);
 					}
 					roundRecheck++;
 					msWaitRecheck = GenerateRandomMillisecond(2, 4) + timerMilisecCountForStepProcess;
@@ -1289,6 +1293,8 @@ VALUES (@TopLeftX, @TopLeftY, @BotRightX, @BotRightY, @SkipToStepIfImageFound )"
 				captureAreaFound = new Rectangle((int)positionResult.X, (int)positionResult.Y, (int)rectWidth, (int)rectHeight);//--**
 				CaptureScreen(captureAreaFound);
 				gvAutoList.Rows[processNumber].Cells[(int)GVHeaderPosition.Position].Value = _croppedBitmap;
+				
+
 				return true;
 			}
 			else
